@@ -1,0 +1,36 @@
+version: '3'
+
+tasks:
+  init:
+    cmds:
+      - npm install
+      - go mod tidy
+  server-dev:
+    dotenv: ['./configs/.env.local']
+    cmds:
+      - air
+  db-dev-up:
+    dir: configs
+    dotenv: ['.env.local']
+    cmds:
+      - docker compose -p mangrove-db -f docker-compose.dev.yaml up -d --wait
+  db-dev-drop:
+    dir: configs
+    dotenv: ['.env.local']
+    cmds:
+      - docker compose -p mangrove-db -f docker-compose.dev.yaml down
+  db-dev-stop:
+    dir: configs
+    dotenv: ['.env.local']
+    cmds:
+      - docker compose -p mangrove-db -f docker-compose.dev.yaml stop
+  ui-dev:
+    cmds:
+      - npx vite
+  ui-build:
+    cmds:
+      - npx tsc
+      - npx vite build
+  ui-preview:
+    cmds:
+      - npx vite preview

@@ -1,0 +1,15 @@
+services:
+  base-postgres:
+    image: postgres:latest
+    ports:
+      - "${GROVE_POSTGRES_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres -d postgres'"]
+      interval: 1s
+      timeout: 10s
+      retries: 10
+    environment:
+      POSTGRES_PASSWORD: ${GROVE_POSTGRES_PASSWORD:-postgres}
+      GROVE_POSTGRES_PORT: ${GROVE_POSTGRES_PORT:-5432}
+volumes:
+  database:
