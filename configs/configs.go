@@ -9,14 +9,13 @@ import (
 type MangroveEnvType string
 
 const (
-	LOCAL MangroveEnvType = "local"
-	DEV   MangroveEnvType = "dev"
-	PROD  MangroveEnvType = "prod"
+	DEV  MangroveEnvType = "dev"
+	PROD MangroveEnvType = "prod"
 )
 
 type EnvVariables struct {
 	// MangroveEnv is the environment variable that specifies the environment in which the application is running
-	// It can be either "local", "dev" or "production"
+	// It can be either "dev" or "production"
 	MangroveEnv MangroveEnvType
 	// MangrovePostgresAddress is the address of the postgres database
 	MangrovePostgresAddress string
