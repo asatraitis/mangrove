@@ -12,21 +12,26 @@ tasks:
     dotenv: ["./configs/{{.DEV_DOT_ENV}}"]
     cmds:
       - air
+  migration-new:
+    dir: tools
+    cmds:
+      - node migration_gen.js {{.CLI_ARGS}}
+      - go fmt ../internal/migrations/migrations.go
   db-dev-up:
     dir: configs
     dotenv: ["{{.DEV_DOT_ENV}}"]
     cmds:
-      - docker compose -p mangrove-db -f docker-compose.dev.yaml up -d --wait
+      - docker compose -p mangrove-db -f docker-compose.postgresdev.yaml up -d --wait
   db-dev-drop:
     dir: configs
     dotenv: ["{{.DEV_DOT_ENV}}"]
     cmds:
-      - docker compose -p mangrove-db -f docker-compose.dev.yaml down
+      - docker compose -p mangrove-db -f docker-compose.postgresdev.yaml down
   db-dev-stop:
     dir: configs
     dotenv: ["{{.DEV_DOT_ENV}}"]
     cmds:
-      - docker compose -p mangrove-db -f docker-compose.dev.yaml stop
+      - docker compose -p mangrove-db -f docker-compose.postgresdev.yaml stop
   ui-dev:
     cmds:
       - npx vite
