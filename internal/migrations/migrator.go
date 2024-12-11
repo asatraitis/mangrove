@@ -62,18 +62,33 @@ func NewMigrator(vars *configs.EnvVariables, logger zerolog.Logger) (*Migrator, 
 }
 
 func (m *Migrator) Run() error {
+	defer m.db.Close(context.Background())
+	if len(m.migrations) == 0 {
+		m.logger.Info().Msg("no migrations to apply")
+		return nil
+	}
 	m.logger.Info().Msg("running migrations")
 	// find index of the current version
-	var versionIdx int
+	var currentVersionIdx int
 	for i, migration := range m.migrations {
 		if migration.Version() == m.currentVersion {
-			versionIdx = i
+			currentVersionIdx = i
 			break
 		}
 	}
 
+	if m.currentVersion != 0 && currentVersionIdx == len(m.migrations)-1 {
+		m.logger.Info().Msg("Migrations up to date")
+		return nil
+	}
+
+	var startIdx int
+	if currentVersionIdx != 0 {
+		startIdx += 1
+	}
+
 	// iterate over migrations from versionIdx
-	for _, migration := range m.migrations[versionIdx:] {
+	for _, migration := range m.migrations[startIdx:] {
 		m.logger.Info().Msgf("applying migration %d", migration.Version())
 		// start transaction
 		tx, err := m.db.Begin(context.Background())

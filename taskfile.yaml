@@ -32,13 +32,23 @@ tasks:
     dotenv: ["{{.DEV_DOT_ENV}}"]
     cmds:
       - docker compose -p mangrove-db -f docker-compose.postgresdev.yaml stop
-  ui-dev:
+  ui-main-dev:
     cmds:
-      - npx vite
-  ui-build:
+      - npx vite web_src/main
+  ui-main-build:
     cmds:
       - npx tsc
-      - npx vite build
-  ui-preview:
+      - npx vite build web_src/main
+  ui-main-preview:
     cmds:
-      - npx vite preview
+      - npx vite preview web_src/main
+  ui-init-dev:
+    cmds:
+      - npx vite web_src/init
+  ui-init-build:
+    cmds:
+      - npx tsc
+      - npx vite build web_src/init
+  ui-init-preview:
+    cmds:
+      - npx vite preview web_src/init

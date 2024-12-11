@@ -27,6 +27,8 @@ type EnvVariables struct {
 	MangrovePostgresPassword string
 	// MangrovePostgresDBName is the name of the postgres database
 	MangrovePostgresDBName string
+	// MangroveSal is salt used for hashing emails and init codes
+	MangroveSalt string
 }
 
 type Conf interface {
@@ -51,6 +53,7 @@ func (c *conf) GetEnvironmentVars() *EnvVariables {
 		MangrovePostgresUser:     c.getEnvByName("MANGROVE_POSTGRES_USER"),
 		MangrovePostgresPassword: c.getEnvByName("MANGROVE_POSTGRES_PASSWORD"),
 		MangrovePostgresDBName:   c.getEnvByName("MANGROVE_POSTGRES_DB_NAME"),
+		MangroveSalt:             c.getEnvByName("MANGROVE_SALT"),
 	}
 }
 
