@@ -3,30 +3,30 @@ package service
 import (
 	"net/http"
 
-	"github.com/asatraitis/mangrove/internal/bll"
 	"github.com/asatraitis/mangrove/internal/dal"
 	"github.com/asatraitis/mangrove/internal/handler"
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -destination=./mocks/mock_router.go -package=mocks github.com/asatraitis/mangrove/internal/service Router
 type Router interface {
 	http.Handler
 }
 type router struct {
 	logger  zerolog.Logger
 	configs Configs
-	bll     bll.BLL
+	handler handler.Handler
 
 	initMux *http.ServeMux
 	mainMux *http.ServeMux
 }
 
-func NewRouter(logger zerolog.Logger, configs Configs, bll bll.BLL) Router {
+func NewRouter(logger zerolog.Logger, configs Configs, handler handler.Handler) Router {
 	logger = logger.With().Str("component", "Router").Logger()
 	ro := &router{
 		logger:  logger,
 		configs: configs,
-		bll:     bll,
+		handler: handler,
 
 		initMux: http.NewServeMux(),
 		mainMux: http.NewServeMux(),
@@ -49,5 +49,5 @@ func (ro *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ro *router) register() {
-	handler.NewInitHandler(ro.logger, ro.bll, ro.initMux)
+	ro.handler.Init(ro.initMux)
 }

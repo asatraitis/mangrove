@@ -7,6 +7,16 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -destination=./mocks/mock_config.go -package=mocks github.com/asatraitis/mangrove/internal/dal ConfigDAL
+type ConfigDAL interface {
+	GetAll() (Configs, error)
+	Set(ConfigKey, string) error
+}
+type configDAL struct {
+	ctx    context.Context
+	db     *pgxpool.Pool
+	logger zerolog.Logger
+}
 type Config struct {
 	Key         string  `json:"key"`
 	Label       string  `json:"label"`
@@ -22,15 +32,6 @@ const (
 )
 
 type Configs map[ConfigKey]Config
-type ConfigDAL interface {
-	GetAll() (Configs, error)
-	Set(ConfigKey, string) error
-}
-type configDAL struct {
-	ctx    context.Context
-	db     *pgxpool.Pool
-	logger zerolog.Logger
-}
 
 func NewConfigDAL(ctx context.Context, logger zerolog.Logger, db *pgxpool.Pool) ConfigDAL {
 	logger = logger.With().Str("subcomponent", "ConfigDAL").Logger()

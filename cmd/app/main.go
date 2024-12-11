@@ -9,6 +9,7 @@ import (
 	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/bll"
 	"github.com/asatraitis/mangrove/internal/dal"
+	"github.com/asatraitis/mangrove/internal/handler"
 	"github.com/asatraitis/mangrove/internal/migrations"
 	"github.com/asatraitis/mangrove/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -58,7 +59,11 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 		return
 	}
 
-	ro := service.NewRouter(logger, service.NewConfig(ctx, logger, BLL), BLL)
+	ro := service.NewRouter(
+		logger,
+		service.NewConfig(ctx, logger, BLL),
+		handler.NewHandler(logger, BLL),
+	)
 
 	httpServer := &http.Server{
 		Addr:    ":3030", // TODO: Add port config

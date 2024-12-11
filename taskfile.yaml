@@ -12,6 +12,10 @@ tasks:
     dotenv: ["./configs/{{.DEV_DOT_ENV}}"]
     cmds:
       - air
+  server-gen-mocks:
+    dir: internal
+    cmds:
+      - go generate ./...
   migration-new:
     dir: tools
     cmds:

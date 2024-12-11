@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -destination=./mocks/mock_init.go -package=mocks github.com/asatraitis/mangrove/internal/handler InitHandler
 type InitHandler interface {
 	home(http.ResponseWriter, *http.Request)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -destination=./mocks/mock_config.go -package=mocks github.com/asatraitis/mangrove/internal/bll ConfigBLL
 type ConfigBLL interface {
 	GetAll() (dal.Configs, error)
 	InitRegistrationCode() error

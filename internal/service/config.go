@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -destination=./mocks/mock_configs.go -package=mocks github.com/asatraitis/mangrove/internal/service Configs
 type Configs interface {
 	GetConfig(dal.ConfigKey) (string, error)
 	GetAll() (dal.Configs, error)

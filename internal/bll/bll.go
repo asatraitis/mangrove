@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -destination=./mocks/mock_bll.go -package=mocks github.com/asatraitis/mangrove/internal/bll BLL
 type BLL interface {
 	Config(context.Context) ConfigBLL
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//go:generate mockgen -destination=./mocks/mock_dal.go -package=mocks github.com/asatraitis/mangrove/internal/dal DAL
 type DAL interface {
 	Config(ctx context.Context) ConfigDAL
 }
