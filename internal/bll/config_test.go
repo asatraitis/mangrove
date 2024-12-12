@@ -48,7 +48,7 @@ func (suite *ConfigBLLTestSuite) TearDownTest() {
 	suite.Ctrl.Finish()
 }
 
-func (suite *ConfigBLLTestSuite) TestGetAllOK() {
+func (suite *ConfigBLLTestSuite) TestGetAll_OK() {
 	// setup
 	suite.configDal.EXPECT().GetAll().Return(dal.Configs{dal.CONFIG_INIT_SA_CODE: dal.Config{}}, nil).Times(1)
 
@@ -60,7 +60,7 @@ func (suite *ConfigBLLTestSuite) TestGetAllOK() {
 	suite.NotNil(configs)
 }
 
-func (suite *ConfigBLLTestSuite) TestGetAllFAIL() {
+func (suite *ConfigBLLTestSuite) TestGetAll_FAIL() {
 	// setup
 	suite.configDal.EXPECT().GetAll().Return(nil, errors.New("test error")).Times(1)
 
@@ -73,7 +73,7 @@ func (suite *ConfigBLLTestSuite) TestGetAllFAIL() {
 	suite.Nil(configs)
 }
 
-func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeOK() {
+func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_OK() {
 	// setup
 	val := "false"
 	suite.configDal.EXPECT().GetAll().Return(dal.Configs{dal.CONFIG_INSTANCE_READY: dal.Config{Key: "instanceReady", Value: &val}}, nil).Times(1)
@@ -88,7 +88,7 @@ func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeOK() {
 	suite.Equal(6, len(code))
 }
 
-func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeOKReadyInstance() {
+func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_OK_ReadyInstance() {
 	// setup
 	val := "true"
 	suite.configDal.EXPECT().GetAll().Return(dal.Configs{dal.CONFIG_INSTANCE_READY: dal.Config{Key: "instanceReady", Value: &val}}, nil).Times(1)
@@ -101,7 +101,7 @@ func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeOKReadyInstance() {
 	suite.Equal("", code)
 }
 
-func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeFAILnoConfig() {
+func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_FAIL_noConfig() {
 	// setup
 	suite.configDal.EXPECT().GetAll().Return(nil, errors.New("test error")).Times(1)
 
@@ -113,7 +113,7 @@ func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeFAILnoConfig() {
 	suite.Equal("", code)
 }
 
-func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeFAILEmptyConfig() {
+func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_FAIL_emptyConfig() {
 	// setup
 	suite.configDal.EXPECT().GetAll().Return(nil, nil).Times(1)
 	suite.configDal.EXPECT().GetAll().Return(dal.Configs{}, nil).Times(1)
@@ -135,7 +135,7 @@ func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeFAILEmptyConfig() {
 	suite.Equal("", code)
 }
 
-func (suite *ConfigBLLTestSuite) TestInitRegistrationCodeFAILnoValue() {
+func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_FAIL_noValue() {
 	// setup
 	suite.configDal.EXPECT().GetAll().Return(dal.Configs{dal.CONFIG_INSTANCE_READY: dal.Config{Key: "instanceReady"}}, nil).Times(1)
 
