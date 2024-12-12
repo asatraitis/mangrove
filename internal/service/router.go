@@ -11,6 +11,8 @@ import (
 //go:generate mockgen -destination=./mocks/mock_router.go -package=mocks github.com/asatraitis/mangrove/internal/service Router
 type Router interface {
 	http.Handler
+
+	register()
 }
 type router struct {
 	logger  zerolog.Logger

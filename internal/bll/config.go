@@ -3,7 +3,6 @@ package bll
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/dal"
@@ -14,7 +13,7 @@ import (
 //go:generate mockgen -destination=./mocks/mock_config.go -package=mocks github.com/asatraitis/mangrove/internal/bll ConfigBLL
 type ConfigBLL interface {
 	GetAll() (dal.Configs, error)
-	InitRegistrationCode() error
+	InitRegistrationCode() (string, error)
 }
 type configBLL struct {
 	ctx    context.Context
@@ -45,29 +44,29 @@ func (c *configBLL) GetAll() (dal.Configs, error) {
 	return configs, nil
 }
 
-func (c *configBLL) InitRegistrationCode() error {
+func (c *configBLL) InitRegistrationCode() (string, error) {
 	const funcName string = "InitRegistrationCode"
-	configs, err := c.GetAll()
-	if err != nil {
+	var initCode string
+	configs, err := c.configDAL.GetAll()
+	if err != nil || configs == nil {
 		c.logger.Err(err).Str("func", funcName).Msg("failed to retrieve config")
-		return err
+		return "", errors.New("config instanceReady was not retrieved")
 	}
 	instanceReady, ok := configs[dal.CONFIG_INSTANCE_READY]
 	if !ok || instanceReady.Value == nil {
 		c.logger.Err(err).Str("func", funcName).Msgf("config for %s not set", dal.CONFIG_INSTANCE_READY)
-		return err
+		return "", errors.New("config instanceReady not set")
 	}
 	if *instanceReady.Value != "true" {
 		hasher := utils.NewCrypto(1, []byte(c.vars.MangroveSalt), 64*1024, 4, 32)
-		initCode := utils.EncodeToString(6)
-		fmt.Printf("================================= [REGISTRATION CODE: %s] =================================\n", initCode)
+		initCode = utils.EncodeToString(6)
 		hashedInitCode := hasher.GenerateBase64String([]byte(initCode))
 
 		err := c.configDAL.Set(dal.CONFIG_INIT_SA_CODE, hashedInitCode)
 		if err != nil {
 			c.logger.Err(err).Str("func", funcName).Msg("failed to set init code")
-			return err
+			return "", err
 		}
 	}
-	return nil
+	return initCode, nil
 }

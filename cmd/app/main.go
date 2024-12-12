@@ -53,7 +53,7 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 	DAL := dal.NewDAL(logger, dbpool)
 	BLL := bll.NewBLL(logger, variables, DAL)
 
-	err = BLL.Config(ctx).InitRegistrationCode()
+	initCode, err := BLL.Config(ctx).InitRegistrationCode()
 	if err != nil {
 		logger.Fatal().Err(err).Msg("could not init registration code")
 		return
@@ -69,6 +69,7 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 		Addr:    ":3030", // TODO: Add port config
 		Handler: ro,
 	}
+	fmt.Printf("============================================ [REGISTRATION CODE: %s] ============================================\n", initCode)
 	logger.Info().Msgf("Starting http server on %s", httpServer.Addr)
 	if err := httpServer.ListenAndServe(); err != nil {
 		logger.Error().Err(err).Msg("Failed to start http server")
