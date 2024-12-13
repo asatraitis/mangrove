@@ -13,6 +13,7 @@ import (
 type Crypto interface {
 	Generate([]byte) []byte
 	GenerateBase64String([]byte) string
+	DecodeBase64String(string) ([]byte, error)
 	CompareValueToHash(string, []byte) error
 }
 type crypto struct {
@@ -42,6 +43,9 @@ func NewCrypto(time uint32, salt []byte, memory uint32, threads uint8, keyLen ui
 
 // https://stackoverflow.com/questions/39481826/generate-6-digit-verification-code-with-golang
 func EncodeToString(max int) string {
+	if max <= 0 {
+		return ""
+	}
 	var randomCodeTable [10]byte = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
 	b := make([]byte, max)
 	n, err := io.ReadAtLeast(rand.Reader, b, max)
@@ -54,16 +58,20 @@ func EncodeToString(max int) string {
 	return string(b)
 }
 
-func (h *crypto) Generate(value []byte) []byte {
-	return argon2.IDKey(value, h.salt, h.time, h.memory, h.threads, h.keyLen)
+func (c *crypto) Generate(value []byte) []byte {
+	return argon2.IDKey(value, c.salt, c.time, c.memory, c.threads, c.keyLen)
 }
 
-func (h *crypto) GenerateBase64String(value []byte) string {
-	return base64.StdEncoding.EncodeToString(h.Generate(value))
+func (c *crypto) GenerateBase64String(value []byte) string {
+	return base64.StdEncoding.EncodeToString(c.Generate(value))
 }
 
-func (h *crypto) CompareValueToHash(value string, hash []byte) error {
-	valueHash := h.Generate([]byte(value))
+func (c *crypto) DecodeBase64String(value string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(value)
+}
+
+func (c *crypto) CompareValueToHash(value string, hash []byte) error {
+	valueHash := c.Generate([]byte(value))
 	if !bytes.Equal(valueHash, hash) {
 		return errors.New("does not match")
 	}

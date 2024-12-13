@@ -42,7 +42,6 @@ func (suite *ConfigBLLTestSuite) SetupSuite() {
 }
 func (suite *ConfigBLLTestSuite) SetupTest() {
 	suite.ctx = context.Background()
-
 }
 func (suite *ConfigBLLTestSuite) TearDownTest() {
 	suite.Ctrl.Finish()
