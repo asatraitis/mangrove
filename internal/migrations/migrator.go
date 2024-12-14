@@ -122,6 +122,7 @@ func (m *Migrator) Run() error {
 	return nil
 }
 
+// TODO: Consolidate w/ initDbPool() in main.go
 func getConnection(ctx context.Context, vars *configs.EnvVariables) (*pgx.Conn, error) {
 	connectionString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", vars.MangrovePostgresUser, vars.MangrovePostgresPassword, vars.MangrovePostgresAddress, vars.MangrovePostgresPort, vars.MangrovePostgresDBName)
 	return pgx.Connect(ctx, connectionString)
