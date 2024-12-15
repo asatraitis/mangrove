@@ -32,6 +32,7 @@ func main() {
 
 func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerolog.Logger) {
 	logger = logger.Level(zerolog.DebugLevel).Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	// Run migrations
 	migrator, err := migrations.NewMigrator(variables, logger)
 	if err != nil {
@@ -77,6 +78,7 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 
 }
 
+// TODO: consolidate w/ getConnection() in migrator.go
 func initDbPool(ctx context.Context, vars *configs.EnvVariables) (*pgxpool.Pool, error) {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		vars.MangrovePostgresUser,

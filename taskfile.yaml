@@ -2,6 +2,7 @@ version: "3"
 
 vars:
   DEV_DOT_ENV: .env.dev
+  TESTING_DOT_ENV: .env.testing
 
 tasks:
   init:
@@ -15,7 +16,14 @@ tasks:
   server-test-unit:
     dir: internal
     cmds:
-      - go test ./...
+      - go test ./... -v -short
+  server-test-integration:
+    dotenv: ["./configs/{{.TESTING_DOT_ENV}}"]
+    cmds:
+      - docker compose -p mangrove-integration-test-db -f ./configs/docker-compose.postgresdev.yaml up -d --wait
+      - defer: docker compose -p mangrove-integration-test-db -f ./configs/docker-compose.postgresdev.yaml down
+      - go run ./cmd/migrate/main.go
+      - go test ./... -v -run Integration
   server-gen-mocks:
     dir: internal
     cmds:
