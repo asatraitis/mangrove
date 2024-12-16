@@ -30,7 +30,7 @@ func NewInitHandler(logger zerolog.Logger, bll bll.BLL, initMux *http.ServeMux) 
 }
 
 func (ih *initHandler) register() {
-	ih.initMux.HandleFunc("GET /", ih.home)
+	ih.initMux.Handle("GET /", http.FileServer(http.Dir("./dist/init")))
 }
 
 func (ih *initHandler) home(w http.ResponseWriter, r *http.Request) {
