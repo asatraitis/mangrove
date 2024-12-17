@@ -11,7 +11,9 @@ import (
 	"github.com/asatraitis/mangrove/internal/dal"
 	"github.com/asatraitis/mangrove/internal/handler"
 	"github.com/asatraitis/mangrove/internal/migrations"
-	"github.com/asatraitis/mangrove/internal/service"
+	"github.com/asatraitis/mangrove/internal/service/config"
+	"github.com/asatraitis/mangrove/internal/service/router"
+	"github.com/asatraitis/mangrove/internal/service/webauthn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 )
@@ -60,10 +62,17 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 		return
 	}
 
-	ro := service.NewRouter(
+	wauthn, err := webauthn.NewWebAuthN(logger)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("could not init webAuthn")
+		return
+	}
+
+	appConfig := config.NewConfig(ctx, logger, BLL)
+	ro := router.NewRouter(
 		logger,
-		service.NewConfig(ctx, logger, BLL),
-		handler.NewHandler(logger, BLL),
+		appConfig,
+		handler.NewHandler(logger, BLL, wauthn, appConfig),
 	)
 
 	httpServer := &http.Server{

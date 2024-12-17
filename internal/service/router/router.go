@@ -1,14 +1,15 @@
-package service
+package router
 
 import (
 	"net/http"
 
 	"github.com/asatraitis/mangrove/internal/dal"
 	"github.com/asatraitis/mangrove/internal/handler"
+	"github.com/asatraitis/mangrove/internal/service/config"
 	"github.com/rs/zerolog"
 )
 
-//go:generate mockgen -destination=./mocks/mock_router.go -package=mocks github.com/asatraitis/mangrove/internal/service Router
+//go:generate mockgen -destination=./mocks/mock_router.go -package=mocks github.com/asatraitis/mangrove/internal/service/router Router
 type Router interface {
 	http.Handler
 
@@ -16,14 +17,14 @@ type Router interface {
 }
 type router struct {
 	logger  zerolog.Logger
-	configs Configs
+	configs config.Configs
 	handler handler.Handler
 
 	initMux *http.ServeMux
 	mainMux *http.ServeMux
 }
 
-func NewRouter(logger zerolog.Logger, configs Configs, handler handler.Handler) Router {
+func NewRouter(logger zerolog.Logger, configs config.Configs, handler handler.Handler) Router {
 	logger = logger.With().Str("component", "Router").Logger()
 	ro := &router{
 		logger:  logger,
