@@ -41,12 +41,11 @@ func (m *MockConfigs) EXPECT() *MockConfigsMockRecorder {
 }
 
 // GetAll mocks base method.
-func (m *MockConfigs) GetAll() (dal.Configs, error) {
+func (m *MockConfigs) GetAll() dal.Configs {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll")
 	ret0, _ := ret[0].(dal.Configs)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
 // GetAll indicates an expected call of GetAll.
@@ -70,16 +69,14 @@ func (mr *MockConfigsMockRecorder) GetConfig(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockConfigs)(nil).GetConfig), arg0)
 }
 
-// Reload mocks base method.
-func (m *MockConfigs) Reload() error {
+// SetAll mocks base method.
+func (m *MockConfigs) SetAll(arg0 dal.Configs) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Reload")
-	ret0, _ := ret[0].(error)
-	return ret0
+	m.ctrl.Call(m, "SetAll", arg0)
 }
 
-// Reload indicates an expected call of Reload.
-func (mr *MockConfigsMockRecorder) Reload() *gomock.Call {
+// SetAll indicates an expected call of SetAll.
+func (mr *MockConfigsMockRecorder) SetAll(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reload", reflect.TypeOf((*MockConfigs)(nil).Reload))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAll", reflect.TypeOf((*MockConfigs)(nil).SetAll), arg0)
 }

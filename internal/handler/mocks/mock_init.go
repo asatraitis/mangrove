@@ -51,3 +51,15 @@ func (mr *MockInitHandlerMockRecorder) home(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "home", reflect.TypeOf((*MockInitHandler)(nil).home), arg0, arg1)
 }
+
+// initRegistration mocks base method.
+func (m *MockInitHandler) initRegistration(arg0 http.ResponseWriter, arg1 *http.Request) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "initRegistration", arg0, arg1)
+}
+
+// initRegistration indicates an expected call of initRegistration.
+func (mr *MockInitHandlerMockRecorder) initRegistration(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "initRegistration", reflect.TypeOf((*MockInitHandler)(nil).initRegistration), arg0, arg1)
+}

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/bll/mocks"
 	"github.com/asatraitis/mangrove/internal/service/config"
-	"github.com/asatraitis/mangrove/internal/service/webauthn"
 	"github.com/asatraitis/mangrove/internal/utils"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
@@ -34,12 +34,14 @@ func (suite *InitHandlerTestSuite) SetupSuite() {
 	suite.logger = zerolog.Nop()
 	suite.bll = mocks.NewMockBLL(suite.Ctrl)
 
-	wauthn, err := webauthn.NewWebAuthN(suite.logger)
-	if err != nil {
-		suite.T().Fatal(err)
-	}
-	appConfig := config.NewConfig(context.Background(), suite.logger, suite.bll)
-	suite.initHandler = NewInitHandler(suite.logger, suite.bll, http.NewServeMux(), wauthn, appConfig)
+	appConfig := config.NewConfig(context.Background(), suite.logger)
+	suite.initHandler = NewInitHandler(
+		&BaseHandler{
+			logger:    suite.logger,
+			vars:      &configs.EnvVariables{},
+			appConfig: appConfig,
+			bll:       suite.bll,
+		}, http.NewServeMux())
 }
 func (suite *InitHandlerTestSuite) SetupTest() {}
 func (suite *InitHandlerTestSuite) TearDownTest() {

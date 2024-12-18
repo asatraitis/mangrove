@@ -4,12 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/asatraitis/mangrove/internal/bll"
 	"github.com/asatraitis/mangrove/internal/dal"
-	"github.com/asatraitis/mangrove/internal/service/config"
-	"github.com/asatraitis/mangrove/internal/service/webauthn"
 	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/rs/zerolog"
 )
 
 //go:generate mockgen -destination=./mocks/mock_init.go -package=mocks github.com/asatraitis/mangrove/internal/handler InitHandler
@@ -18,13 +14,9 @@ type InitHandler interface {
 	initRegistration(http.ResponseWriter, *http.Request)
 }
 type initHandler struct {
-	logger zerolog.Logger
-	bll    bll.BLL
+	*BaseHandler
 
 	initMux *http.ServeMux
-
-	webauthn webauthn.WebAuthN
-	config   config.Configs
 }
 
 type InitRegistrationRequest struct {
@@ -32,15 +24,12 @@ type InitRegistrationRequest struct {
 }
 type InitRegistrationResponse *protocol.CredentialCreation
 
-func NewInitHandler(logger zerolog.Logger, bll bll.BLL, initMux *http.ServeMux, webauthn webauthn.WebAuthN, config config.Configs) InitHandler {
-	logger = logger.With().Str("subcomponent", "InitHandler").Logger()
+func NewInitHandler(baseHandler *BaseHandler, initMux *http.ServeMux) InitHandler {
 	h := &initHandler{
-		logger:   logger,
-		bll:      bll,
-		initMux:  initMux,
-		webauthn: webauthn,
-		config:   config,
+		BaseHandler: baseHandler,
+		initMux:     initMux,
 	}
+	h.logger = h.logger.With().Str("subcomponent", "InitHandler").Logger()
 	h.register()
 	return h
 }
@@ -66,7 +55,7 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// regCode is hashed value
-	regCode, err := ih.config.GetConfig(dal.CONFIG_INIT_SA_CODE)
+	regCode, err := ih.appConfig.GetConfig(dal.CONFIG_INIT_SA_CODE)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

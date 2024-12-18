@@ -33,7 +33,10 @@ func (suite *ConfigDALTestSuite) SetupSuite() {
 	}
 	suite.DB = dbpool
 
-	suite.configDAL = NewConfigDAL(suite.ctx, zerolog.Nop(), suite.DB)
+	suite.configDAL = NewConfigDAL(suite.ctx, &BaseDAL{
+		logger: zerolog.Nop(),
+		db:     suite.DB,
+	})
 }
 func (suite *ConfigDALTestSuite) SetupTest()    {}
 func (suite *ConfigDALTestSuite) TearDownTest() {}

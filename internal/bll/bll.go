@@ -5,6 +5,8 @@ import (
 
 	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/dal"
+	"github.com/asatraitis/mangrove/internal/service/config"
+	"github.com/asatraitis/mangrove/internal/service/webauthn"
 	"github.com/rs/zerolog"
 )
 
@@ -12,21 +14,30 @@ import (
 type BLL interface {
 	Config(context.Context) ConfigBLL
 }
+type BaseBLL struct {
+	logger    zerolog.Logger
+	vars      *configs.EnvVariables
+	appConfig config.Configs
+	webauthn  webauthn.WebAuthN
+	dal       dal.DAL
+}
 type bll struct {
-	logger zerolog.Logger
-	vars   *configs.EnvVariables
-	dal    dal.DAL
+	*BaseBLL
 }
 
-func NewBLL(logger zerolog.Logger, vars *configs.EnvVariables, dal dal.DAL) BLL {
+func NewBLL(logger zerolog.Logger, vars *configs.EnvVariables, appConfig config.Configs, webauthn webauthn.WebAuthN, dal dal.DAL) BLL {
 	logger = logger.With().Str("component", "BLL").Logger()
 	return &bll{
-		logger: logger,
-		vars:   vars,
-		dal:    dal,
+		BaseBLL: &BaseBLL{
+			logger:    logger,
+			vars:      vars,
+			appConfig: appConfig,
+			webauthn:  webauthn,
+			dal:       dal,
+		},
 	}
 }
 
 func (b *bll) Config(ctx context.Context) ConfigBLL {
-	return NewConfigBLL(ctx, b.logger, b.vars, b.dal)
+	return NewConfigBLL(ctx, b.BaseBLL)
 }

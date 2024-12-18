@@ -53,8 +53,17 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 	}
 	defer dbpool.Close()
 
+	// init webauthn
+	wauthn, err := webauthn.NewWebAuthN(logger)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("could not init webAuthn")
+		return
+	}
+
+	appConfig := config.NewConfig(ctx, logger)
+
 	DAL := dal.NewDAL(logger, dbpool)
-	BLL := bll.NewBLL(logger, variables, DAL)
+	BLL := bll.NewBLL(logger, variables, appConfig, wauthn, DAL)
 
 	initCode, err := BLL.Config(ctx).InitRegistrationCode()
 	if err != nil {
@@ -62,17 +71,10 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 		return
 	}
 
-	wauthn, err := webauthn.NewWebAuthN(logger)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("could not init webAuthn")
-		return
-	}
-
-	appConfig := config.NewConfig(ctx, logger, BLL)
 	ro := router.NewRouter(
 		logger,
 		appConfig,
-		handler.NewHandler(logger, BLL, wauthn, appConfig),
+		handler.NewHandler(logger, BLL, variables, appConfig),
 	)
 
 	httpServer := &http.Server{

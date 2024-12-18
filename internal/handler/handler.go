@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
+	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/bll"
 	"github.com/asatraitis/mangrove/internal/service/config"
-	"github.com/asatraitis/mangrove/internal/service/webauthn"
 	"github.com/rs/zerolog"
 )
 
@@ -13,23 +13,28 @@ import (
 type Handler interface {
 	Init(*http.ServeMux) InitHandler
 }
+type BaseHandler struct {
+	logger    zerolog.Logger
+	vars      *configs.EnvVariables
+	appConfig config.Configs
+	bll       bll.BLL
+}
 type handler struct {
-	logger   zerolog.Logger
-	bll      bll.BLL
-	config   config.Configs
-	webauthn webauthn.WebAuthN
+	*BaseHandler
 }
 
-func NewHandler(logger zerolog.Logger, bll bll.BLL, webauthn webauthn.WebAuthN, config config.Configs) Handler {
+func NewHandler(logger zerolog.Logger, bll bll.BLL, vars *configs.EnvVariables, appConfig config.Configs) Handler {
 	logger = logger.With().Str("component", "Handler").Logger()
 	return &handler{
-		logger:   logger,
-		bll:      bll,
-		webauthn: webauthn,
-		config:   config,
+		BaseHandler: &BaseHandler{
+			logger:    logger,
+			vars:      vars,
+			appConfig: appConfig,
+			bll:       bll,
+		},
 	}
 }
 
 func (h *handler) Init(mux *http.ServeMux) InitHandler {
-	return NewInitHandler(h.logger, h.bll, mux, h.webauthn, h.config)
+	return NewInitHandler(h.BaseHandler, mux)
 }

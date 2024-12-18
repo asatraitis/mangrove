@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/dal"
 	"github.com/asatraitis/mangrove/internal/utils"
-	"github.com/rs/zerolog"
 )
 
 //go:generate mockgen -destination=./mocks/mock_config.go -package=mocks github.com/asatraitis/mangrove/internal/bll ConfigBLL
@@ -16,38 +14,33 @@ type ConfigBLL interface {
 	InitRegistrationCode() (string, error)
 }
 type configBLL struct {
-	ctx    context.Context
-	logger zerolog.Logger
-	vars   *configs.EnvVariables
-	dal    dal.DAL
-
-	configDAL dal.ConfigDAL
+	ctx context.Context
+	*BaseBLL
 }
 
-func NewConfigBLL(ctx context.Context, logger zerolog.Logger, vars *configs.EnvVariables, dal dal.DAL) ConfigBLL {
-	logger = logger.With().Str("subcomponent", "ConfigBLL").Logger()
-	return &configBLL{
-		ctx:       ctx,
-		logger:    logger,
-		vars:      vars,
-		dal:       dal,
-		configDAL: dal.Config(ctx),
+func NewConfigBLL(ctx context.Context, baseBLL *BaseBLL) ConfigBLL {
+	cbll := &configBLL{
+		ctx:     ctx,
+		BaseBLL: baseBLL,
 	}
+	cbll.logger = baseBLL.logger.With().Str("subcomponent", "ConfigBLL").Logger()
+	return cbll
 }
 
 func (c *configBLL) GetAll() (dal.Configs, error) {
-	configs, err := c.configDAL.GetAll()
+	configs, err := c.dal.Config(c.ctx).GetAll()
 	if err != nil {
 		c.logger.Err(err).Str("func", "GetAll")
 		return nil, errors.New("failed to get configs")
 	}
+	c.appConfig.SetAll(configs)
 	return configs, nil
 }
 
 func (c *configBLL) InitRegistrationCode() (string, error) {
 	const funcName string = "InitRegistrationCode"
 	var initCode string
-	configs, err := c.configDAL.GetAll()
+	configs, err := c.GetAll()
 	if err != nil || configs == nil {
 		c.logger.Err(err).Str("func", funcName).Msg("failed to retrieve config")
 		return "", errors.New("config instanceReady was not retrieved")
@@ -62,7 +55,8 @@ func (c *configBLL) InitRegistrationCode() (string, error) {
 		initCode = utils.EncodeToString(6)
 		hashedInitCode := hasher.GenerateBase64String([]byte(initCode))
 
-		err := c.configDAL.Set(dal.CONFIG_INIT_SA_CODE, hashedInitCode)
+		configDAL := c.dal.Config(c.ctx)
+		err := configDAL.Set(dal.CONFIG_INIT_SA_CODE, hashedInitCode)
 		if err != nil {
 			c.logger.Err(err).Str("func", funcName).Msg("failed to set init code")
 			return "", err

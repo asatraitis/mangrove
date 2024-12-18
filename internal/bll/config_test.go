@@ -8,6 +8,8 @@ import (
 	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/dal"
 	"github.com/asatraitis/mangrove/internal/dal/mocks"
+	"github.com/asatraitis/mangrove/internal/service/config"
+	"github.com/asatraitis/mangrove/internal/service/webauthn"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -16,10 +18,11 @@ import (
 type ConfigBLLTestSuite struct {
 	suite.Suite
 
-	Ctrl   *gomock.Controller
-	ctx    context.Context
-	logger zerolog.Logger
-	vars   *configs.EnvVariables
+	Ctrl      *gomock.Controller
+	ctx       context.Context
+	logger    zerolog.Logger
+	vars      *configs.EnvVariables
+	appConfig config.Configs
 
 	dal       *mocks.MockDAL
 	configDal *mocks.MockConfigDAL
@@ -38,7 +41,13 @@ func (suite *ConfigBLLTestSuite) SetupSuite() {
 	suite.dal = mocks.NewMockDAL(suite.Ctrl)
 	suite.dal.EXPECT().Config(gomock.Any()).Return(suite.configDal).AnyTimes()
 
-	suite.bll = NewBLL(suite.logger, suite.vars, suite.dal)
+	wauthn, err := webauthn.NewWebAuthN(suite.logger)
+	if err != nil {
+		suite.T().Fatal(err)
+	}
+
+	suite.appConfig = config.NewConfig(context.Background(), suite.logger)
+	suite.bll = NewBLL(suite.logger, suite.vars, suite.appConfig, wauthn, suite.dal)
 }
 func (suite *ConfigBLLTestSuite) SetupTest() {
 	suite.ctx = context.Background()

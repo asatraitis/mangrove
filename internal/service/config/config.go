@@ -5,7 +5,6 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/asatraitis/mangrove/internal/bll"
 	"github.com/asatraitis/mangrove/internal/dal"
 	"github.com/rs/zerolog"
 )
@@ -13,56 +12,47 @@ import (
 //go:generate mockgen -destination=./mocks/mock_configs.go -package=mocks github.com/asatraitis/mangrove/internal/service/config Configs
 type Configs interface {
 	GetConfig(dal.ConfigKey) (string, error)
-	GetAll() (dal.Configs, error)
-	Reload() error
+	SetAll(dal.Configs)
+	GetAll() dal.Configs
 }
-type configs struct {
-	ctx    context.Context
-	logger zerolog.Logger
-	bll    bll.BLL
-	mu     sync.RWMutex
-
+type BaseConfig struct {
+	logger         zerolog.Logger
+	mu             sync.RWMutex
 	currentConfigs dal.Configs
 }
+type configs struct {
+	ctx context.Context
+	*BaseConfig
+}
 
-func NewConfig(ctx context.Context, logger zerolog.Logger, bll bll.BLL) Configs {
-	logger = logger.With().Str("component", "Config").Logger()
+func NewConfig(ctx context.Context, logger zerolog.Logger) Configs {
 	return &configs{
-		ctx:    ctx,
-		logger: logger,
-		bll:    bll,
+		ctx: ctx,
+		BaseConfig: &BaseConfig{
+			logger:         logger.With().Str("component", "Config").Logger(),
+			currentConfigs: make(dal.Configs),
+		},
 	}
 }
 
-func (c *configs) GetAll() (dal.Configs, error) {
+func (c *configs) GetAll() dal.Configs {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	if c.currentConfigs == nil {
-		all, err := c.bll.Config(c.ctx).GetAll()
-		if err != nil {
-			c.logger.Err(err).Str("func", "GetAll")
-			return nil, err
-		}
-		c.currentConfigs = all
-	}
-	return c.currentConfigs, nil
+	return c.currentConfigs
+}
+
+func (c *configs) SetAll(conf dal.Configs) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.currentConfigs = conf
 }
 
 func (c *configs) GetConfig(key dal.ConfigKey) (string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	const funcName string = "GetConfig"
-	all, err := c.GetAll()
-	if err != nil {
-		c.logger.Err(err).Str("func", funcName)
-		return "", err
-	}
-	if all == nil {
-		err = errors.New("failed to retrieve config")
-		c.logger.Err(err).Str("func", funcName)
-		return "", err
-	}
-	config, ok := all[key]
+
+	config, ok := c.currentConfigs[key]
 	if !ok {
 		c.logger.Info().Str("func", funcName).Msgf("config with key %s was not found", key)
 		return "", errors.New("config not found")
@@ -72,16 +62,4 @@ func (c *configs) GetConfig(key dal.ConfigKey) (string, error) {
 		return "", errors.New("config not set (nil)")
 	}
 	return *config.Value, nil
-}
-
-func (c *configs) Reload() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	all, err := c.bll.Config(c.ctx).GetAll()
-	if err != nil {
-		c.logger.Err(err).Str("func", "Reload")
-		return err
-	}
-	c.currentConfigs = all
-	return nil
 }
