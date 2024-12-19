@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Mangrove",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

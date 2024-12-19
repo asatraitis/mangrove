@@ -16,7 +16,7 @@ type Handler interface {
 type BaseHandler struct {
 	logger    zerolog.Logger
 	vars      *configs.EnvVariables
-	appConfig config.Configs
+	appConfig config.Configs // TODO: Do we need it in the handler?
 	bll       bll.BLL
 }
 type handler struct {

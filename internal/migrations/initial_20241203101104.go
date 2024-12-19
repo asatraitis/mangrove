@@ -61,7 +61,8 @@ func (m *initial_20241203101104) Up(tx pgx.Tx) error {
 		);
 		INSERT INTO config (key, label, value, type, description) VALUES 
 			('initSACode', 'Super admin initialization code', '', 'string', 'Code to initialize superadmin user'),
-			('instanceReady', 'Instance initialized', 'false', 'boolean', 'Flag to indicate if the instance has been initialized and ready')
+			('instanceReady', 'Instance initialized', 'false', 'boolean', 'Flag to indicate if the instance has been initialized and ready'),
+			('initAttempts', 'Super admin initialization attempts', '0', 'int', 'Application allows 3 attempts to provide a correct registration code and finish registration. Resets on application start.')
 		ON CONFLICT DO NOTHING;
 	`)
 	return err

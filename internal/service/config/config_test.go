@@ -94,3 +94,34 @@ func (suite *ConfigServiceTestSuite) TestGetConfig_FAIL_configValueNotExists() {
 	suite.ErrorContains(err, "config not set (nil)")
 	suite.Equal("", configVal)
 }
+
+func (suite *ConfigServiceTestSuite) TestUpdateConfig_OK() {
+	// setup
+	suite.configs.SetAll(dal.Configs{dal.CONFIG_INSTANCE_READY: dal.Config{}})
+
+	// run
+	err := suite.configs.UpdateConfig(dal.CONFIG_INSTANCE_READY, "testValue")
+	suite.NoError(err)
+
+	newVal, err := suite.configs.GetConfig(dal.CONFIG_INSTANCE_READY)
+	suite.NoError(err)
+	suite.Equal("testValue", newVal)
+}
+
+func (suite *ConfigServiceTestSuite) TestUpdateConfig_FAIL() {
+	// setup
+	suite.configs.SetAll(dal.Configs{dal.CONFIG_INSTANCE_READY: dal.Config{}})
+
+	// run
+	err := suite.configs.UpdateConfig("", "testValue")
+	suite.Error(err)
+	suite.ErrorContains(err, "empty key or value")
+
+	err = suite.configs.UpdateConfig(dal.CONFIG_INSTANCE_READY, "")
+	suite.Error(err)
+	suite.ErrorContains(err, "empty key or value")
+
+	err = suite.configs.UpdateConfig("whatever", "testValue")
+	suite.Error(err)
+	suite.ErrorContains(err, "config does not exist")
+}

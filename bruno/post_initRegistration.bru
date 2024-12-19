@@ -1,0 +1,17 @@
+meta {
+  name: post_initRegistration
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3030
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "registrationCode": ""
+  }
+}

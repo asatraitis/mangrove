@@ -1,11 +1,11 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
-	"github.com/asatraitis/mangrove/internal/dal"
-	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/asatraitis/mangrove/internal/dto"
 )
 
 //go:generate mockgen -destination=./mocks/mock_init.go -package=mocks github.com/asatraitis/mangrove/internal/handler InitHandler
@@ -18,11 +18,6 @@ type initHandler struct {
 
 	initMux *http.ServeMux
 }
-
-type InitRegistrationRequest struct {
-	RegistrationCode string `json:"registrationCode"`
-}
-type InitRegistrationResponse *protocol.CredentialCreation
 
 func NewInitHandler(baseHandler *BaseHandler, initMux *http.ServeMux) InitHandler {
 	h := &initHandler{
@@ -45,24 +40,36 @@ func (ih *initHandler) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) {
-	// TODO: Refacotr; too much logic in a handler - should be in BLL
-	var reg InitRegistrationRequest
+	var req dto.InitRegistrationRequest
+	var ctx context.Context = context.Background()
 
-	err := json.NewDecoder(r.Body).Decode(&reg)
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
+
+	err = ih.bll.Config(ctx).ValidateRegistrationCode(req.RegistrationCode)
+	if err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	res := dto.Response[dto.InitRegistrationResponse]{Response: &dto.InitRegistrationResponse{}}
+	json.NewEncoder(w).Encode(res)
 
 	// regCode is hashed value
-	regCode, err := ih.appConfig.GetConfig(dal.CONFIG_INIT_SA_CODE)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	ih.logger.Info().Msgf("OK: %s - %s", regCode, reg.RegistrationCode)
+	// regCode, err := ih.appConfig.GetConfig(dal.CONFIG_INIT_SA_CODE)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// ih.logger.Info().Msgf("OK: %s - %s", regCode, reg.RegistrationCode)
 
-	w.WriteHeader(http.StatusOK)
+	// w.WriteHeader(http.StatusOK)
 	// response, err := ih.webauthn.BeginRegistration()
 	// if err != nil {
 	// 	http.Error(w, err.Error(), http.StatusInternalServerError)

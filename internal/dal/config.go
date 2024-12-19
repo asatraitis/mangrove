@@ -25,6 +25,7 @@ type ConfigKey string
 const (
 	CONFIG_INSTANCE_READY ConfigKey = "instanceReady"
 	CONFIG_INIT_SA_CODE   ConfigKey = "initSACode"
+	CONFIG_INIT_ATTEMPTS  ConfigKey = "initAttempts"
 )
 
 type Configs map[ConfigKey]Config

@@ -3,6 +3,7 @@ package bll
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/asatraitis/mangrove/configs"
@@ -36,6 +37,7 @@ func (suite *ConfigBLLTestSuite) SetupSuite() {
 	suite.Ctrl = gomock.NewController(suite.T())
 	suite.logger = zerolog.Nop()
 	suite.vars = configs.NewConf(suite.logger).GetEnvironmentVars()
+	suite.vars.MangroveSalt = "testsalt"
 
 	suite.configDal = mocks.NewMockConfigDAL(suite.Ctrl)
 	suite.dal = mocks.NewMockDAL(suite.Ctrl)
@@ -83,9 +85,15 @@ func (suite *ConfigBLLTestSuite) TestGetAll_FAIL() {
 
 func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_OK() {
 	// setup
-	val := "false"
-	suite.configDal.EXPECT().GetAll().Return(dal.Configs{dal.CONFIG_INSTANCE_READY: dal.Config{Key: "instanceReady", Value: &val}}, nil).Times(1)
+	var val string = "false"
+	var attempts string = "0"
+	suite.configDal.EXPECT().GetAll().Return(dal.Configs{
+		dal.CONFIG_INSTANCE_READY: dal.Config{Key: "instanceReady", Value: &val},
+		dal.CONFIG_INIT_SA_CODE:   dal.Config{},
+		dal.CONFIG_INIT_ATTEMPTS:  dal.Config{Value: &attempts},
+	}, nil).Times(1)
 	suite.configDal.EXPECT().Set(dal.CONFIG_INIT_SA_CODE, gomock.Any()).Return(nil)
+	suite.configDal.EXPECT().Set(dal.CONFIG_INIT_ATTEMPTS, "0").Return(nil)
 
 	// run
 	code, err := suite.bll.Config(suite.ctx).InitRegistrationCode()
@@ -94,6 +102,10 @@ func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_OK() {
 	suite.NoError(err)
 	suite.NotEqual("", code)
 	suite.Equal(6, len(code))
+
+	hashedCode, err := suite.appConfig.GetConfig(dal.CONFIG_INIT_SA_CODE)
+	suite.NoError(err)
+	suite.NotEmpty(hashedCode)
 }
 
 func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_OK_ReadyInstance() {
@@ -154,4 +166,53 @@ func (suite *ConfigBLLTestSuite) TestInitRegistrationCode_FAIL_noValue() {
 	suite.Error(err)
 	suite.ErrorContains(err, "config instanceReady not set")
 	suite.Equal("", code)
+}
+
+func (suite *ConfigBLLTestSuite) TestValidateRegistrationCode_OK() {
+	// setup
+	var testAttempts string = "0"
+	var testValue string = "sWCtIzlmuIqI5Q4PWNBtJeXUT/co+a3fZXXVG5Wa8zM=" // 123456
+	suite.appConfig.SetAll(dal.Configs{
+		dal.CONFIG_INIT_SA_CODE:  dal.Config{Value: &testValue},
+		dal.CONFIG_INIT_ATTEMPTS: dal.Config{Value: &testAttempts},
+	})
+
+	// run
+	err := suite.bll.Config(suite.ctx).ValidateRegistrationCode("123456")
+
+	// test
+	suite.NoError(err)
+}
+
+func (suite *ConfigBLLTestSuite) TestValidateRegistrationCode_FAIL() {
+	// setup
+	var testInitAttempts = "0"
+	var testValue string = "0arivWpd9loXHq7PRRPZ0svkODQSubIkbW7brExl0mY=" // 175006
+	suite.appConfig.SetAll(dal.Configs{
+		dal.CONFIG_INIT_SA_CODE:  dal.Config{Value: &testValue},
+		dal.CONFIG_INIT_ATTEMPTS: dal.Config{Value: &testInitAttempts},
+	})
+
+	// run
+	err := suite.bll.Config(suite.ctx).ValidateRegistrationCode("")
+	suite.Error(err)
+	suite.ErrorContains(err, "no registration code provided")
+
+	// run
+	err = suite.bll.Config(suite.ctx).ValidateRegistrationCode("12345")
+	suite.Error(err) // expects len of 6
+	suite.ErrorContains(err, "no registration code provided")
+
+	// run
+	err = suite.bll.Config(suite.ctx).ValidateRegistrationCode("1234557")
+	suite.Error(err) // expects len of 6
+	suite.ErrorContains(err, "no registration code provided")
+
+	// setup
+	suite.configDal.EXPECT().Set(dal.CONFIG_INIT_ATTEMPTS, gomock.Any()).Return(nil)
+	// run
+	err = suite.bll.Config(suite.ctx).ValidateRegistrationCode("012345")
+	fmt.Println(err)
+	suite.Error(err) // expects len of 6
+	suite.ErrorContains(err, "failed to validate code")
 }
