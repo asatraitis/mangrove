@@ -80,3 +80,17 @@ func (mr *MockConfigsMockRecorder) SetAll(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAll", reflect.TypeOf((*MockConfigs)(nil).SetAll), arg0)
 }
+
+// UpdateConfig mocks base method.
+func (m *MockConfigs) UpdateConfig(arg0 dal.ConfigKey, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateConfig", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateConfig indicates an expected call of UpdateConfig.
+func (mr *MockConfigsMockRecorder) UpdateConfig(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfig", reflect.TypeOf((*MockConfigs)(nil).UpdateConfig), arg0, arg1)
+}

@@ -40,6 +40,9 @@ func (ih *initHandler) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) {
+	// TODO: Need to add a middleware to add a signed token to a cookie
+	// csrf_token = "<raw_token>|<signature>"
+	// on requests validate that <raw_token> in X-CSRF-Token header using the <signature>
 	var req dto.InitRegistrationRequest
 	var ctx context.Context = context.Background()
 
@@ -55,10 +58,23 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	userRegCreds, csrfToken, err := ih.bll.User(ctx).CreateUserSession()
+	if err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:  "csrf_token",
+		Value: csrfToken,
+		Path:  "/",
+		// Secure: true, // TODO: this needs to be set TRUE for prod
+	})
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	res := dto.Response[dto.InitRegistrationResponse]{Response: &dto.InitRegistrationResponse{}}
+	res := dto.Response[dto.InitRegistrationResponse]{Response: &dto.InitRegistrationResponse{
+		PublicKey: userRegCreds.Response,
+	}}
 	json.NewEncoder(w).Encode(res)
 
 	// regCode is hashed value

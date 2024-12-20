@@ -69,3 +69,31 @@ func (mr *MockConfigBLLMockRecorder) InitRegistrationCode() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitRegistrationCode", reflect.TypeOf((*MockConfigBLL)(nil).InitRegistrationCode))
 }
+
+// Set mocks base method.
+func (m *MockConfigBLL) Set(arg0 dal.ConfigKey, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Set", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Set indicates an expected call of Set.
+func (mr *MockConfigBLLMockRecorder) Set(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockConfigBLL)(nil).Set), arg0, arg1)
+}
+
+// ValidateRegistrationCode mocks base method.
+func (m *MockConfigBLL) ValidateRegistrationCode(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateRegistrationCode", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidateRegistrationCode indicates an expected call of ValidateRegistrationCode.
+func (mr *MockConfigBLLMockRecorder) ValidateRegistrationCode(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateRegistrationCode", reflect.TypeOf((*MockConfigBLL)(nil).ValidateRegistrationCode), arg0)
+}

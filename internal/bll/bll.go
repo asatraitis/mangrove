@@ -13,6 +13,7 @@ import (
 //go:generate mockgen -destination=./mocks/mock_bll.go -package=mocks github.com/asatraitis/mangrove/internal/bll BLL
 type BLL interface {
 	Config(context.Context) ConfigBLL
+	User(context.Context) UserBLL
 }
 type BaseBLL struct {
 	logger    zerolog.Logger
@@ -40,4 +41,8 @@ func NewBLL(logger zerolog.Logger, vars *configs.EnvVariables, appConfig config.
 
 func (b *bll) Config(ctx context.Context) ConfigBLL {
 	return NewConfigBLL(ctx, b.BaseBLL)
+}
+
+func (b *bll) User(ctx context.Context) UserBLL {
+	return NewUserBLL(ctx, b.BaseBLL)
 }

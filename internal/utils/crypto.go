@@ -2,11 +2,14 @@ package utils
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"io"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -15,6 +18,8 @@ type Crypto interface {
 	GenerateBase64String([]byte) string
 	DecodeBase64String(string) ([]byte, error)
 	CompareValueToHash(string, []byte) error
+	GenerateTokenHMAC() (token string, signature string, err error)
+	VerifyToken(token string, signature string) error
 }
 type crypto struct {
 	// time represents the number of
@@ -76,4 +81,31 @@ func (c *crypto) CompareValueToHash(value string, hash []byte) error {
 		return errors.New("does not match")
 	}
 	return nil
+}
+
+func (c *crypto) GenerateTokenHMAC() (token string, signature string, err error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return token, signature, err
+	}
+	token = id.String()
+
+	signature = SignToken(token, c.salt)
+
+	return token, signature, err
+}
+
+func (c *crypto) VerifyToken(token, signature string) error {
+	expected := SignToken(token, c.salt)
+	ok := hmac.Equal([]byte(expected), []byte(signature))
+	if !ok {
+		return errors.New("failed to verify token")
+	}
+	return nil
+}
+
+func SignToken(token string, secret []byte) string {
+	mac := hmac.New(sha256.New, secret)
+	mac.Write([]byte(token))
+	return base64.URLEncoding.EncodeToString(mac.Sum(nil))
 }

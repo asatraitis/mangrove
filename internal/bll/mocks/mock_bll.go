@@ -54,3 +54,17 @@ func (mr *MockBLLMockRecorder) Config(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Config", reflect.TypeOf((*MockBLL)(nil).Config), arg0)
 }
+
+// User mocks base method.
+func (m *MockBLL) User(arg0 context.Context) bll.UserBLL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "User", arg0)
+	ret0, _ := ret[0].(bll.UserBLL)
+	return ret0
+}
+
+// User indicates an expected call of User.
+func (mr *MockBLLMockRecorder) User(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockBLL)(nil).User), arg0)
+}

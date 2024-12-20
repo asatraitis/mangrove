@@ -49,7 +49,7 @@ func (c *configs) SetAll(conf dal.Configs) {
 }
 
 func (c *configs) UpdateConfig(key dal.ConfigKey, value string) error {
-	var funcName string = "UpdateConfig"
+	const funcName string = "UpdateConfig"
 	if key == "" || value == "" {
 		c.logger.Error().Str("func", funcName).Str("key", string(key)).Str("value", value).Msg("invalid config - empty key or value")
 		return errors.New("invalid config - empty key or value")
