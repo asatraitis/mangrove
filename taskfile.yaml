@@ -28,6 +28,9 @@ tasks:
     dir: internal
     cmds:
       - go generate ./...
+  ui-gen-types:
+    cmds:
+      - tygo generate
   migration-new:
     dir: tools
     cmds:

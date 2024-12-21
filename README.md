@@ -2,6 +2,7 @@
 ### Go
 ### gomock
 ### mockgen
+### tygo
 ### Node
 ### Taskfile
 ### Air

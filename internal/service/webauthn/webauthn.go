@@ -41,7 +41,7 @@ type webAuthN struct {
 func NewWebAuthN(logger zerolog.Logger) (WebAuthN, error) {
 	logger = logger.With().Str("component", "WebAuthN").Logger()
 
-	// TODO: remove hard coded confing and add env vars
+	// TODO: remove hard coded confing and add env vars; look at more settings
 	waConfig := &webauthn.Config{
 		RPDisplayName: "Mangrove",
 		RPID:          "localhost",

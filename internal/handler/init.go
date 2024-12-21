@@ -64,9 +64,10 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
-		Name:  "csrf_token",
-		Value: csrfToken,
-		Path:  "/",
+		Name:     "csrf_token",
+		Value:    csrfToken,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
 		// Secure: true, // TODO: this needs to be set TRUE for prod
 	})
 	w.Header().Set("Content-Type", "application/json")

@@ -1,0 +1,3 @@
+packages:
+  - path: "github.com/asatraitis/mangrove/internal/dto"
+    output_path: "internal/dto/types.ts"
