@@ -38,9 +38,8 @@ export class RegistrationService implements IRegistrationService {
             // TODO: set and display error
             return
         }
-
-        const registrationOptions = await this.client.initRegistration(this.codeInputRef.value)
-        console.info({registrationOptions})
+            const registrationOptions = await this.client.initRegistration(this.codeInputRef.value)
+            console.info({registrationOptions})
     }
     
 }

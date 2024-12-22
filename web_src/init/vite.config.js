@@ -9,16 +9,6 @@ export default defineConfig({
   },
   server:{
     port: 3001,
-    proxy: {
-      '/': {
-        target: "http://localhost:3030",
-        configure: (proxy, opts) => {
-          proxy.on('proxyReq', (preq, req, res) => {
-            console.log(req.method)
-          })
-        }
-      }
-    },
   },
   publicDir: "../../public/init",
   build: {

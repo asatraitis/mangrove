@@ -43,26 +43,39 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 	// TODO: Need to add a middleware to add a signed token to a cookie
 	// csrf_token = "<raw_token>|<signature>"
 	// on requests validate that <raw_token> in X-CSRF-Token header using the <signature>
-	var req dto.InitRegistrationRequest
 	var ctx context.Context = context.Background()
+
+	var req dto.InitRegistrationRequest
+	var res dto.InitRegistrationResponse
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "", http.StatusBadRequest)
+		sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+			Message: "invalid request body",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
 		return
 	}
 
 	err = ih.bll.Config(ctx).ValidateRegistrationCode(req.RegistrationCode)
 	if err != nil {
-		http.Error(w, "", http.StatusBadRequest)
+		sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+			Message: "invalid registration code",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
 		return
 	}
 
 	userRegCreds, csrfToken, err := ih.bll.User(ctx).CreateUserSession()
 	if err != nil {
-		http.Error(w, "", http.StatusBadRequest)
+		sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+			Message: "failed to create registration credentials",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
 		return
 	}
+	res.PublicKey = userRegCreds.Response
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf_token",
 		Value:    csrfToken,
@@ -73,25 +86,17 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	res := dto.Response[dto.InitRegistrationResponse]{Response: &dto.InitRegistrationResponse{
-		PublicKey: userRegCreds.Response,
-	}}
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(dto.Response[dto.InitRegistrationResponse]{Response: &res})
+}
 
-	// regCode is hashed value
-	// regCode, err := ih.appConfig.GetConfig(dal.CONFIG_INIT_SA_CODE)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-	// ih.logger.Info().Msgf("OK: %s - %s", regCode, reg.RegistrationCode)
+func sendErrResponse[T any](w http.ResponseWriter, err *dto.ResponseError, status int) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 
-	// w.WriteHeader(http.StatusOK)
-	// response, err := ih.webauthn.BeginRegistration()
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-	// w.Header().Set("Content-Type", "application/json")
-	// json.NewEncoder(w).Encode(response)
+	return json.NewEncoder(w).Encode(
+		dto.Response[T]{
+			Response: nil,
+			Error:    err,
+		},
+	)
 }
