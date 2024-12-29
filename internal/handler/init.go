@@ -4,14 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/asatraitis/mangrove/internal/dto"
+	"github.com/asatraitis/mangrove/internal/utils"
 )
 
 //go:generate mockgen -destination=./mocks/mock_init.go -package=mocks github.com/asatraitis/mangrove/internal/handler InitHandler
 type InitHandler interface {
 	home(http.ResponseWriter, *http.Request)
 	initRegistration(http.ResponseWriter, *http.Request)
+	finishRegistration(http.ResponseWriter, *http.Request)
 }
 type initHandler struct {
 	*BaseHandler
@@ -32,6 +35,7 @@ func NewInitHandler(baseHandler *BaseHandler, initMux *http.ServeMux) InitHandle
 func (ih *initHandler) register() {
 	ih.initMux.Handle("GET /", http.FileServer(http.Dir("./dist/init")))
 	ih.initMux.HandleFunc("POST /", ih.initRegistration)
+	ih.initMux.HandleFunc("POST /finish", ih.csrfValidationMiddleware(ih.finishRegistration))
 }
 
 func (ih *initHandler) home(w http.ResponseWriter, r *http.Request) {
@@ -40,9 +44,6 @@ func (ih *initHandler) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) {
-	// TODO: Need to add a middleware to add a signed token to a cookie
-	// csrf_token = "<raw_token>|<signature>"
-	// on requests validate that <raw_token> in X-CSRF-Token header using the <signature>
 	var ctx context.Context = context.Background()
 
 	var req dto.InitRegistrationRequest
@@ -66,7 +67,7 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userRegCreds, csrfToken, err := ih.bll.User(ctx).CreateUserSession()
+	userRegCreds, err := ih.bll.User(ctx).CreateUserSession()
 	if err != nil {
 		sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
 			Message: "failed to create registration credentials",
@@ -76,17 +77,32 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 	}
 	res.PublicKey = userRegCreds.Response
 
+	hasher := utils.NewStandardCrypto([]byte(ih.vars.MangroveSalt))
+	token, sig, err := hasher.GenerateTokenHMAC()
+	if err != nil {
+		sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+			Message: "failed to create a signiture",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf_token",
-		Value:    csrfToken,
+		Value:    token + "." + sig,
 		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteStrictMode,
 		// Secure: true, // TODO: this needs to be set TRUE for prod
 	})
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(dto.Response[dto.InitRegistrationResponse]{Response: &res})
+}
+
+func (ih *initHandler) finishRegistration(w http.ResponseWriter, r *http.Request) {
+	ih.logger.Info().Msg("OK")
+	w.WriteHeader(http.StatusOK)
 }
 
 func sendErrResponse[T any](w http.ResponseWriter, err *dto.ResponseError, status int) error {
@@ -99,4 +115,48 @@ func sendErrResponse[T any](w http.ResponseWriter, err *dto.ResponseError, statu
 			Error:    err,
 		},
 	)
+}
+
+// TODO: this middleware needs to be made reusable in other handler structs; depends on a salt
+// that is part of the env vars dependency
+func (ih *initHandler) csrfValidationMiddleware(next HandlerFuncType) HandlerFuncType {
+	return func(w http.ResponseWriter, r *http.Request) {
+		csrfToken := r.Header.Get("X-CSRF-Token")
+		csrfCookie, err := r.Cookie("csrf_token")
+		if err != nil || csrfToken == "" {
+			sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+				Message: "failed to validate token",
+				Code:    "ERROR_CODE_TBD",
+			}, http.StatusBadRequest)
+			return
+		}
+		csrfParts := strings.Split(csrfCookie.Value, ".")
+		if len(csrfParts) != 2 {
+			sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+				Message: "failed to validate token",
+				Code:    "ERROR_CODE_TBD",
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if csrfToken != csrfParts[0] {
+			sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+				Message: "failed to validate token",
+				Code:    "ERROR_CODE_TBD",
+			}, http.StatusBadRequest)
+			return
+		}
+
+		hasher := utils.NewStandardCrypto([]byte(ih.vars.MangroveSalt))
+		err = hasher.VerifyToken(csrfToken, csrfParts[1])
+		if err != nil {
+			sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+				Message: "failed to validate token",
+				Code:    "ERROR_CODE_TBD",
+			}, http.StatusBadRequest)
+			return
+		}
+
+		next(w, r)
+	}
 }

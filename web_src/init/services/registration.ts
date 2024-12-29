@@ -1,5 +1,12 @@
 import { ClientService, IClientService } from "./client"
 
+class UIError {
+    message: string
+    constructor(message: string) {
+        this.message = message
+    }
+}
+
 interface IRegistrationService {}
 
 export class RegistrationService implements IRegistrationService {
@@ -38,8 +45,92 @@ export class RegistrationService implements IRegistrationService {
             // TODO: set and display error
             return
         }
-            const registrationOptions = await this.client.initRegistration(this.codeInputRef.value)
-            console.info({registrationOptions})
+        const registrationOptions = await this.client.initRegistration(this.codeInputRef.value)
+        if (registrationOptions.error) {
+            // TODO: handle error
+            console.error("error", registrationOptions.error)
+            return
+        }
+        if (!registrationOptions.response?.publicKey) {
+            // TODO: handle empty response
+            console.error("error ", "missing registration options")
+            return
+        }
+        const [prepedCredOpts, err] = typeConvPublicKeyCredentialCreationOptions(registrationOptions.response.publicKey)
+        if (err != null) {
+            // TODO: handle error
+            console.error(err.message)
+            return
+        }
+        if (prepedCredOpts == null) {
+            // TODO: handle empty credopts
+            return
+        }
+
+        const creds = await navigator.credentials.create({
+            publicKey: prepedCredOpts,
+        });
+        console.info({creds})
+
+        const finished = await this.client.finishRegistration()
+        console.info({finished})
+
     }
+
     
+}
+
+type CredOpts = [
+    PublicKeyCredentialCreationOptions | null,
+    UIError | null,
+]
+function typeConvPublicKeyCredentialCreationOptions(opts: any): CredOpts {
+    if (!opts) {
+        return [null, new UIError("missing opts")]
+    }
+    try {
+        const credopts: PublicKeyCredentialCreationOptions = {
+            challenge: base64UrlToBuffer(opts.challenge),
+            rp: opts.rp,
+            user: {
+                id: base64UrlToBuffer(opts.user.id),
+                name: opts.user.name,
+                displayName: opts.user.displayName
+            },
+            pubKeyCredParams: opts.pubKeyCredParams,
+            authenticatorSelection: {
+                authenticatorAttachment: "cross-platform"
+            },
+            timeout: opts.timeout,
+            attestation: "direct"
+        }
+        return [credopts, null]
+    } catch {
+        return [null, new UIError("missing opts")]
+    }
+}
+
+
+function base64UrlToBuffer(base64Url: string): ArrayBuffer {
+    base64Url = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+    let binaryString = window.atob(base64Url)
+    let len = binaryString.length
+    let bytes = new Uint8Array(len)
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+    }
+    return bytes.buffer
+}
+
+function bufferToBase64Url(buffer: ArrayBuffer): string {
+    let binary = ""
+    let bytes = new Uint8Array(buffer)
+    let len = bytes.byteLength
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCodePoint(bytes[i])
+    }
+    return window.btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "")
 }

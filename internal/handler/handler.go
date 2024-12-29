@@ -22,6 +22,7 @@ type BaseHandler struct {
 type handler struct {
 	*BaseHandler
 }
+type HandlerFuncType func(w http.ResponseWriter, r *http.Request)
 
 func NewHandler(logger zerolog.Logger, bll bll.BLL, vars *configs.EnvVariables, appConfig config.Configs) Handler {
 	logger = logger.With().Str("component", "Handler").Logger()

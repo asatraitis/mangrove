@@ -46,8 +46,7 @@ func (suite *UserBllTestSuite) SetupTest() {
 }
 func (suite *UserBllTestSuite) TearDownTest() {}
 func (suite *UserBllTestSuite) TestCreateUserSession_OK() {
-	creds, token, err := suite.bll.User(suite.ctx).CreateUserSession()
+	creds, err := suite.bll.User(suite.ctx).CreateUserSession()
 	suite.NoError(err)
 	suite.NotEmpty(creds)
-	suite.NotEmpty(token)
 }

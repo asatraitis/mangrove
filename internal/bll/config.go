@@ -26,7 +26,7 @@ type configBLL struct {
 func NewConfigBLL(ctx context.Context, baseBLL *BaseBLL) ConfigBLL {
 	cbll := &configBLL{
 		ctx:     ctx,
-		hasher:  utils.NewCrypto(1, []byte(baseBLL.vars.MangroveSalt), 64*1024, 4, 32),
+		hasher:  utils.NewStandardCrypto([]byte(baseBLL.vars.MangroveSalt)),
 		BaseBLL: baseBLL,
 	}
 	cbll.logger = baseBLL.logger.With().Str("subcomponent", "ConfigBLL").Logger()

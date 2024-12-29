@@ -36,6 +36,9 @@ type crypto struct {
 	salt []byte
 }
 
+func NewStandardCrypto(salt []byte) Crypto {
+	return NewCrypto(1, salt, 64*1024, 4, 32)
+}
 func NewCrypto(time uint32, salt []byte, memory uint32, threads uint8, keyLen uint32) Crypto {
 	return &crypto{
 		time:    time,
@@ -84,7 +87,7 @@ func (c *crypto) CompareValueToHash(value string, hash []byte) error {
 }
 
 func (c *crypto) GenerateTokenHMAC() (token string, signature string, err error) {
-	id, err := uuid.NewV7()
+	id, err := uuid.NewRandom()
 	if err != nil {
 		return token, signature, err
 	}
