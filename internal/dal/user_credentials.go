@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+//go:generate mockgen -destination=./mocks/mock_user_credential.go -package=mocks github.com/asatraitis/mangrove/internal/dal UserCredentialsDAL
 type UserCredentialsDAL interface {
 	Create(tx pgx.Tx, credential *models.UserCredential) error
 }

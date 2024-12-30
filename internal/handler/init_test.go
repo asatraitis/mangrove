@@ -58,3 +58,7 @@ func (suite *InitHandlerTestSuite) TestHome_OK() {
 
 	suite.Equal(200, w.Code)
 }
+
+// TODO: decide how to unit test webauthn init/finish registration
+func (suite *InitHandlerTestSuite) TestInitRegistration()   {}
+func (suite *InitHandlerTestSuite) TestFinishRegistration() {}

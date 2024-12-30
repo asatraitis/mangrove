@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+//go:generate mockgen -destination=./mocks/mock_user.go -package=mocks github.com/asatraitis/mangrove/internal/dal UserDAL
 type UserDAL interface {
 	Create(pgx.Tx, *models.User) error
 }

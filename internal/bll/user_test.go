@@ -50,3 +50,8 @@ func (suite *UserBllTestSuite) TestCreateUserSession_OK() {
 	suite.NoError(err)
 	suite.NotEmpty(creds)
 }
+
+// TODO: decide on how to unit test webauthn flow
+func (suite *UserBllTestSuite) TestRegisterSuperAdmin_OK() {
+
+}
