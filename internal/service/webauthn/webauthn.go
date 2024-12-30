@@ -1,6 +1,9 @@
 package webauthn
 
 import (
+	"encoding/base64"
+	"errors"
+
 	"github.com/asatraitis/mangrove/internal/utils"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -30,6 +33,7 @@ func (wau *WebAuthNUser) WebAuthnCredentials() []webauthn.Credential {
 
 type WebAuthN interface {
 	BeginRegistration() (*protocol.CredentialCreation, error)
+	FinishRegistration(string, *protocol.CredentialCreationResponse) (*webauthn.Credential, error)
 }
 type webAuthN struct {
 	logger zerolog.Logger
@@ -45,7 +49,7 @@ func NewWebAuthN(logger zerolog.Logger) (WebAuthN, error) {
 	waConfig := &webauthn.Config{
 		RPDisplayName: "Mangrove",
 		RPID:          "localhost",
-		RPOrigins:     []string{"http://localhost"},
+		RPOrigins:     []string{"http://localhost:3030"},
 	}
 	wa, err := webauthn.New(waConfig)
 	if err != nil {
@@ -80,4 +84,50 @@ func (w *webAuthN) BeginRegistration() (*protocol.CredentialCreation, error) {
 	w.cache.SetValue(newUser.ID.String(), session)
 
 	return opts, nil
+}
+
+func (w *webAuthN) FinishRegistration(userID string, credResp *protocol.CredentialCreationResponse) (*webauthn.Credential, error) {
+	const funcName string = "FinishRegistration"
+
+	if userID == "" {
+		err := errors.New("missing userID")
+		w.logger.Err(err).Str("func", funcName).Msg("failed to parse registration credential; missing userID")
+		return nil, err
+	}
+
+	bUserID, err := base64.StdEncoding.DecodeString(userID)
+	if err != nil {
+		w.logger.Err(err).Str("func", funcName).Msg("failed to parse registration credential; failed to decode userID")
+		return nil, err
+	}
+
+	userSession := w.cache.GetValue(string(bUserID))
+	if userSession == nil {
+		err = errors.New("failed to get user session")
+		w.logger.Err(err).Str("func", funcName).Msg("failed to get user session from cache")
+		return nil, err
+	}
+
+	parsedUserID, err := uuid.Parse(string(bUserID))
+	if err != nil {
+		w.logger.Err(err).Str("func", funcName).Msg("failed to parse user UUID")
+		return nil, err
+	}
+
+	user := WebAuthNUser{ID: parsedUserID}
+
+	parsedCred, err := credResp.Parse()
+	if err != nil {
+		w.logger.Err(err).Str("func", funcName).Msg("failed to parse registration credential")
+		return nil, errors.New("failed to parse user credential")
+	}
+
+	credential, err := w.wa.CreateCredential(&user, *userSession, parsedCred)
+	if err != nil {
+		w.logger.Err(err).Str("func", funcName).Msg("failed to create webauthn credential")
+		return nil, errors.New("failed to create user credential")
+	}
+
+	return credential, nil
+
 }

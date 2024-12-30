@@ -2,7 +2,7 @@ import {Response, InitRegistrationResponse} from "@dto/types"
 
 export interface IClientService {
     initRegistration(registrationCode: string): Promise<Response<InitRegistrationResponse>>
-    finishRegistration(): Promise<any>
+    finishRegistration(userId: string, credential: Credential): Promise<any>
 }
 
 export class ClientService implements IClientService {
@@ -17,7 +17,7 @@ export class ClientService implements IClientService {
             return ({
             error: {
                 message: err,
-                code: "ERROR_SERVER_CONN"
+                code: "ERROR_FETCH_INCOMPLETE"
             },
         } as Response<T>)})
     }
@@ -46,7 +46,7 @@ export class ClientService implements IClientService {
         )
     }
 
-    finishRegistration(): Promise<any> {
+    finishRegistration(userId: string, credential: Credential): Promise<Response<any>> {
         const csrfCookie = ClientService.getCookie("csrf_token")
         if (csrfCookie === "") {
             // TODO: handle no cookie
@@ -65,6 +65,7 @@ export class ClientService implements IClientService {
             headers: {
                 "X-CSRF-Token": parts[0]
             },
+            body: JSON.stringify({userId, credential})
         })
     }
 }

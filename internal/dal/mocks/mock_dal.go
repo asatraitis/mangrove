@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	dal "github.com/asatraitis/mangrove/internal/dal"
+	pgx "github.com/jackc/pgx/v5"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -41,6 +42,21 @@ func (m *MockDAL) EXPECT() *MockDALMockRecorder {
 	return m.recorder
 }
 
+// BeginTx mocks base method.
+func (m *MockDAL) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BeginTx", ctx)
+	ret0, _ := ret[0].(pgx.Tx)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BeginTx indicates an expected call of BeginTx.
+func (mr *MockDALMockRecorder) BeginTx(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTx", reflect.TypeOf((*MockDAL)(nil).BeginTx), ctx)
+}
+
 // Config mocks base method.
 func (m *MockDAL) Config(ctx context.Context) dal.ConfigDAL {
 	m.ctrl.T.Helper()
@@ -53,4 +69,32 @@ func (m *MockDAL) Config(ctx context.Context) dal.ConfigDAL {
 func (mr *MockDALMockRecorder) Config(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Config", reflect.TypeOf((*MockDAL)(nil).Config), ctx)
+}
+
+// User mocks base method.
+func (m *MockDAL) User(ctx context.Context) dal.UserDAL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "User", ctx)
+	ret0, _ := ret[0].(dal.UserDAL)
+	return ret0
+}
+
+// User indicates an expected call of User.
+func (mr *MockDALMockRecorder) User(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockDAL)(nil).User), ctx)
+}
+
+// UserCredentials mocks base method.
+func (m *MockDAL) UserCredentials(ctx context.Context) dal.UserCredentialsDAL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserCredentials", ctx)
+	ret0, _ := ret[0].(dal.UserCredentialsDAL)
+	return ret0
+}
+
+// UserCredentials indicates an expected call of UserCredentials.
+func (mr *MockDALMockRecorder) UserCredentials(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserCredentials", reflect.TypeOf((*MockDAL)(nil).UserCredentials), ctx)
 }

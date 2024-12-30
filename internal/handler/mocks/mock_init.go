@@ -40,6 +40,18 @@ func (m *MockInitHandler) EXPECT() *MockInitHandlerMockRecorder {
 	return m.recorder
 }
 
+// finishRegistration mocks base method.
+func (m *MockInitHandler) finishRegistration(arg0 http.ResponseWriter, arg1 *http.Request) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "finishRegistration", arg0, arg1)
+}
+
+// finishRegistration indicates an expected call of finishRegistration.
+func (mr *MockInitHandlerMockRecorder) finishRegistration(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "finishRegistration", reflect.TypeOf((*MockInitHandler)(nil).finishRegistration), arg0, arg1)
+}
+
 // home mocks base method.
 func (m *MockInitHandler) home(arg0 http.ResponseWriter, arg1 *http.Request) {
 	m.ctrl.T.Helper()

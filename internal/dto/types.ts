@@ -4,7 +4,8 @@
 // source: finish_registration_request.go
 
 export interface FinishRegistrationRequest {
-  CredentialCreationResponse: any /* protocol.CredentialCreationResponse */;
+  credential: any /* protocol.CredentialCreationResponse */;
+  userId: string;
 }
 
 //////////

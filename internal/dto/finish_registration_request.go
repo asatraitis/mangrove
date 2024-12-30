@@ -5,5 +5,6 @@ import (
 )
 
 type FinishRegistrationRequest struct {
-	protocol.CredentialCreationResponse
+	Credential protocol.CredentialCreationResponse `json:"credential"`
+	UserID     string                              `json:"userId"`
 }

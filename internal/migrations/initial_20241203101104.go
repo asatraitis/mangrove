@@ -27,7 +27,7 @@ func (m *initial_20241203101104) Up(tx pgx.Tx) error {
 			id UUID PRIMARY KEY,
 			username TEXT NOT NULL UNIQUE,
 			display_name TEXT NOT NULL,
-			email TEXT NOT NULL,
+			email TEXT,
 			status TEXT NOT NULL,
 			role TEXT NOT NULL
 		);
@@ -41,7 +41,6 @@ func (m *initial_20241203101104) Up(tx pgx.Tx) error {
 			flag_verified boolean NOT NULL DEFAULT FALSE,
 			flag_backup_eligible boolean NOT NULL DEFAULT FALSE,
 			flag_backup_state boolean NOT NULL DEFAULT FALSE,
-			flag_raw bytea,
 			auth_aaguid bytea,
 			auth_sign_count integer NOT NULL DEFAULT 0,
 			auth_clone_warning boolean NOT NULL DEFAULT FALSE,

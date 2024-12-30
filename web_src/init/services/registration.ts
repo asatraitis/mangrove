@@ -45,6 +45,7 @@ export class RegistrationService implements IRegistrationService {
             // TODO: set and display error
             return
         }
+
         const registrationOptions = await this.client.initRegistration(this.codeInputRef.value)
         if (registrationOptions.error) {
             // TODO: handle error
@@ -56,6 +57,7 @@ export class RegistrationService implements IRegistrationService {
             console.error("error ", "missing registration options")
             return
         }
+
         const [prepedCredOpts, err] = typeConvPublicKeyCredentialCreationOptions(registrationOptions.response.publicKey)
         if (err != null) {
             // TODO: handle error
@@ -71,8 +73,13 @@ export class RegistrationService implements IRegistrationService {
             publicKey: prepedCredOpts,
         });
         console.info({creds})
+        if (!creds) {
+            console.error("missing registration credential")
+            return
+        }
+        const prepedCred = prepCredentialRequest(creds)
 
-        const finished = await this.client.finishRegistration()
+        const finished = await this.client.finishRegistration(registrationOptions.response.publicKey.user.id, prepedCred)
         console.info({finished})
 
     }
@@ -110,6 +117,36 @@ function typeConvPublicKeyCredentialCreationOptions(opts: any): CredOpts {
     }
 }
 
+function prepCredentialRequest(cred: any): any {
+    if (!cred?.response?.attestationObject) {
+        // TODO: handle this
+    }
+    const attestationObject = new Uint8Array(cred.response.attestationObject)
+
+    if (!cred?.response?.clientDataJSON) {
+        // TODO: handle this
+    }
+    const clientDataJSON = new Uint8Array(cred.response.clientDataJSON)
+
+    if (!cred.rawId) {
+        // TODO: handle this
+    }
+    const rawId = new Uint8Array()
+
+    if (!cred.id && !cred.type) {
+         // TODO: handle this
+    }
+
+    return {
+        id: cred.id,
+        type: cred.type,
+        response: {
+            attestationObject: bufferToBase64Url(attestationObject),
+            clientDataJSON: bufferToBase64Url(clientDataJSON)
+        },
+        rawId: bufferToBase64Url(rawId)
+    }
+}
 
 function base64UrlToBuffer(base64Url: string): ArrayBuffer {
     base64Url = base64Url.replace(/-/g, "+").replace(/_/g, "/")
