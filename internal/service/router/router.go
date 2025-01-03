@@ -53,4 +53,5 @@ func (ro *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (ro *router) register() {
 	ro.handler.Init(ro.initMux)
+	ro.handler.Main(ro.mainMux)
 }
