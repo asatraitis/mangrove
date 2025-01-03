@@ -38,6 +38,7 @@ func (ih *initHandler) register() {
 	ih.initMux.HandleFunc("POST /finish", ih.csrfValidationMiddleware(ih.finishRegistration))
 }
 
+// TODO: remove
 func (ih *initHandler) home(w http.ResponseWriter, r *http.Request) {
 	ih.logger.Info().Str("func", "home").Msg("GET /")
 	w.WriteHeader(http.StatusOK)

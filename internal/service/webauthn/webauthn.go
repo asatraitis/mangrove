@@ -3,6 +3,7 @@ package webauthn
 import (
 	"encoding/base64"
 	"errors"
+	"time"
 
 	"github.com/asatraitis/mangrove/internal/utils"
 	"github.com/go-webauthn/webauthn/protocol"
@@ -50,6 +51,18 @@ func NewWebAuthN(logger zerolog.Logger) (WebAuthN, error) {
 		RPDisplayName: "Mangrove",
 		RPID:          "localhost",
 		RPOrigins:     []string{"http://localhost:3030"},
+		Timeouts: webauthn.TimeoutsConfig{
+			Login: webauthn.TimeoutConfig{
+				Enforce:    true,             // Require the response from the client comes before the end of the timeout.
+				Timeout:    time.Second * 60, // Standard timeout for login sessions.
+				TimeoutUVD: time.Second * 60, // Timeout for login sessions which have user verification set to discouraged.
+			},
+			Registration: webauthn.TimeoutConfig{
+				Enforce:    true,             // Require the response from the client comes before the end of the timeout.
+				Timeout:    time.Second * 60, // Standard timeout for registration sessions.
+				TimeoutUVD: time.Second * 60, // Timeout for login sessions which have user verification set to discouraged.
+			},
+		},
 	}
 	wa, err := webauthn.New(waConfig)
 	if err != nil {
