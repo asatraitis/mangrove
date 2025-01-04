@@ -107,7 +107,7 @@ func (ih *initHandler) finishRegistration(w http.ResponseWriter, r *http.Request
 	var req dto.FinishRegistrationRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+		sendErrResponse[any](w, &dto.ResponseError{
 			Message: "invalid request body",
 			Code:    "ERROR_CODE_TBD",
 		}, http.StatusBadRequest)
@@ -116,7 +116,7 @@ func (ih *initHandler) finishRegistration(w http.ResponseWriter, r *http.Request
 
 	err = ih.bll.User(ctx).RegisterSuperAdmin(&req)
 	if err != nil {
-		sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
+		sendErrResponse[any](w, &dto.ResponseError{
 			Message: err.Error(),
 			Code:    "ERROR_CODE_TBD",
 		}, http.StatusBadRequest)

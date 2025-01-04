@@ -60,7 +60,7 @@ export class ClientService implements IClientService {
         }
 
 
-        return ClientService.call<any>("/finish", {
+        return ClientService.call<Response<any>>("/finish", {
             method: "POST",
             headers: {
                 "X-CSRF-Token": parts[0]

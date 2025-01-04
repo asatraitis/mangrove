@@ -1,3 +1,4 @@
+import {Response} from "@dto/types"
 import { ClientService, IClientService } from "./client"
 
 class UIError {
@@ -79,9 +80,13 @@ export class RegistrationService implements IRegistrationService {
         }
         const prepedCred = prepCredentialRequest(creds)
 
-        const finished = await this.client.finishRegistration(registrationOptions.response.publicKey.user.id, prepedCred)
-        console.info({finished})
+        const finished: Response<any> = await this.client.finishRegistration(registrationOptions.response.publicKey.user.id, prepedCred)
+        if (finished.error) {
+            // TODO: handle error
+            return
+        } else
 
+        window.location.reload()
     }
 
     
