@@ -120,6 +120,7 @@ func (u *userBLL) RegisterSuperAdmin(req *dto.FinishRegistrationRequest) error {
 		return errors.New("failed to create superadmin")
 	}
 
+	// TODO: consolidate app config updates in configDAL
 	err = u.dal.Config(u.ctx).Set(dal.CONFIG_INSTANCE_READY, "true")
 	if err != nil {
 		u.logger.Err(err).Str("func", funcName).Msg("failed to update instanceReady config in DB")

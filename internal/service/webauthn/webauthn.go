@@ -43,6 +43,8 @@ type webAuthN struct {
 }
 
 // TODO: Need to add cache expiration logic
+// technically, this will only be used for superadmin registration once - not critical to empty cache
+// but likely need to add expiration logic to cache package
 func NewWebAuthN(logger zerolog.Logger) (WebAuthN, error) {
 	logger = logger.With().Str("component", "WebAuthN").Logger()
 

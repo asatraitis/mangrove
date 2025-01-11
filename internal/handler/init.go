@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -122,6 +123,24 @@ func (ih *initHandler) finishRegistration(w http.ResponseWriter, r *http.Request
 		}, http.StatusBadRequest)
 		return
 	}
+
+	// set an auth token; should not error ever - same parsing done in BLL previously
+	bUserID, err := base64.StdEncoding.DecodeString(req.UserID)
+	if err != nil {
+		ih.logger.Error().Msg("failed to parse user id")
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: err.Error(),
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth_token",
+		Value:    string(bUserID),
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+		// Secure: true, // TODO: this needs to be set TRUE for prod
+	})
 
 	w.WriteHeader(http.StatusOK)
 }
