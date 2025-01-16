@@ -15,10 +15,11 @@ type Handler interface {
 	Main(*http.ServeMux) MainHandler
 }
 type BaseHandler struct {
-	logger    zerolog.Logger
-	vars      *configs.EnvVariables
-	appConfig config.Configs // TODO: Do we need it in the handler?
-	bll       bll.BLL
+	logger     zerolog.Logger
+	vars       *configs.EnvVariables
+	appConfig  config.Configs // TODO: Do we need it in the handler?
+	bll        bll.BLL
+	middleware Middleware
 }
 type handler struct {
 	*BaseHandler
@@ -29,10 +30,11 @@ func NewHandler(logger zerolog.Logger, bll bll.BLL, vars *configs.EnvVariables, 
 	logger = logger.With().Str("component", "Handler").Logger()
 	return &handler{
 		BaseHandler: &BaseHandler{
-			logger:    logger,
-			vars:      vars,
-			appConfig: appConfig,
-			bll:       bll,
+			logger:     logger,
+			vars:       vars,
+			appConfig:  appConfig,
+			bll:        bll,
+			middleware: NewMiddleware(vars),
 		},
 	}
 }

@@ -37,10 +37,11 @@ func (suite *InitHandlerTestSuite) SetupSuite() {
 	appConfig := config.NewConfig(context.Background(), suite.logger)
 	suite.initHandler = NewInitHandler(
 		&BaseHandler{
-			logger:    suite.logger,
-			vars:      &configs.EnvVariables{},
-			appConfig: appConfig,
-			bll:       suite.bll,
+			logger:     suite.logger,
+			vars:       &configs.EnvVariables{},
+			appConfig:  appConfig,
+			bll:        suite.bll,
+			middleware: NewMiddleware(&configs.EnvVariables{}),
 		}, http.NewServeMux())
 }
 func (suite *InitHandlerTestSuite) SetupTest() {}
