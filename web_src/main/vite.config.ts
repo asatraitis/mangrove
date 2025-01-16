@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from "path";
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -16,5 +17,8 @@ export default defineConfig({
   build: {
     outDir: "../../dist/main"
   },
-  plugins: [react()],
+  plugins: [
+    TanStackRouterVite(),
+    react()
+  ],
 })
