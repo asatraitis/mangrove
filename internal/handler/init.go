@@ -8,6 +8,7 @@ import (
 
 	"github.com/asatraitis/mangrove/internal/dto"
 	"github.com/asatraitis/mangrove/internal/utils"
+	"github.com/google/uuid"
 )
 
 //go:generate mockgen -destination=./mocks/mock_init.go -package=mocks github.com/asatraitis/mangrove/internal/handler InitHandler
@@ -133,9 +134,30 @@ func (ih *initHandler) finishRegistration(w http.ResponseWriter, r *http.Request
 		}, http.StatusBadRequest)
 		return
 	}
+
+	userUUID, err := uuid.Parse(string(bUserID))
+	if err != nil {
+		ih.logger.Error().Msg("failed to parse user id")
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: err.Error(),
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	token, err := ih.bll.User(ctx).CreateToken(userUUID)
+	if err != nil {
+		ih.logger.Error().Msg("failed to create user token")
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: err.Error(),
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "auth_token",
-		Value:    string(bUserID),
+		Value:    token.ID.String(),
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 		// Secure: true, // TODO: this needs to be set TRUE for prod

@@ -15,6 +15,7 @@ type DAL interface {
 	Config(ctx context.Context) ConfigDAL
 	User(ctx context.Context) UserDAL
 	UserCredentials(ctx context.Context) UserCredentialsDAL
+	UserTokens(ctx context.Context) UserTokensDAL
 }
 type BaseDAL struct {
 	logger zerolog.Logger
@@ -46,4 +47,7 @@ func (d *dal) User(ctx context.Context) UserDAL {
 }
 func (d *dal) UserCredentials(ctx context.Context) UserCredentialsDAL {
 	return NewUserCredentialsDAL(ctx, d.BaseDAL)
+}
+func (d *dal) UserTokens(ctx context.Context) UserTokensDAL {
+	return NewUserTokensDAL(ctx, d.BaseDAL)
 }

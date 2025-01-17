@@ -98,3 +98,17 @@ func (mr *MockDALMockRecorder) UserCredentials(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserCredentials", reflect.TypeOf((*MockDAL)(nil).UserCredentials), ctx)
 }
+
+// UserTokens mocks base method.
+func (m *MockDAL) UserTokens(ctx context.Context) dal.UserTokensDAL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserTokens", ctx)
+	ret0, _ := ret[0].(dal.UserTokensDAL)
+	return ret0
+}
+
+// UserTokens indicates an expected call of UserTokens.
+func (mr *MockDALMockRecorder) UserTokens(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserTokens", reflect.TypeOf((*MockDAL)(nil).UserTokens), ctx)
+}

@@ -54,3 +54,17 @@ func (mr *MockHandlerMockRecorder) Init(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockHandler)(nil).Init), arg0)
 }
+
+// Main mocks base method.
+func (m *MockHandler) Main(arg0 *http.ServeMux) handler.MainHandler {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Main", arg0)
+	ret0, _ := ret[0].(handler.MainHandler)
+	return ret0
+}
+
+// Main indicates an expected call of Main.
+func (mr *MockHandlerMockRecorder) Main(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Main", reflect.TypeOf((*MockHandler)(nil).Main), arg0)
+}

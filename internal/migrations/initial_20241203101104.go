@@ -51,6 +51,11 @@ func (m *initial_20241203101104) Up(tx pgx.Tx) error {
 			attestation_public_key_algorithm bigint NOT NULL,
 			attestation_object bytea
 		);
+		CREATE TABLE IF NOT EXISTS user_tokens (
+			id UUID PRIMARY KEY,
+			user_id uuid NOT NULL REFERENCES users(id),
+			expires timestamp NOT NULL
+		);
 		CREATE TABLE IF NOT EXISTS config (
 			key TEXT PRIMARY KEY,
 			label TEXT NOT NULL,
@@ -69,6 +74,7 @@ func (m *initial_20241203101104) Up(tx pgx.Tx) error {
 func (m *initial_20241203101104) Down(tx pgx.Tx) error {
 	_, err := tx.Exec(context.Background(), `
         -- SQL migration revert
+		DROP TABLE IF EXISTS user_tokens;
 		DROP TABLE IF EXISTS user_credentials;
 		DROP TABLE IF EXISTS users;
 		DROP TABLE IF EXISTS config;

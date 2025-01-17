@@ -90,5 +90,5 @@ func (uc *userCredentialsDAL) Create(tx pgx.Tx, credential *models.UserCredentia
 		uc.logger.Err(err).Str("func", funcName).Msg("failed to insert user credential")
 	}
 
-	return nil
+	return err
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"time"
 
 	"github.com/asatraitis/mangrove/internal/dal"
 	"github.com/asatraitis/mangrove/internal/dal/models"
@@ -16,6 +17,7 @@ import (
 type UserBLL interface {
 	CreateUserSession() (*protocol.CredentialCreation, error)
 	RegisterSuperAdmin(*dto.FinishRegistrationRequest) error
+	CreateToken(uuid.UUID) (*models.UserToken, error)
 }
 type userBLL struct {
 	ctx    context.Context
@@ -138,4 +140,29 @@ func (u *userBLL) RegisterSuperAdmin(req *dto.FinishRegistrationRequest) error {
 		return errors.New("failed to create superadmin")
 	}
 	return nil
+}
+
+func (u *userBLL) CreateToken(userID uuid.UUID) (*models.UserToken, error) {
+	const funcName = "CreateToken"
+
+	id, err := uuid.NewV7()
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Str("userID", userID.String()).Msg("failed to generate token ID")
+		return nil, errors.New("failed to create user token")
+	}
+
+	token := &models.UserToken{
+		ID:      id,
+		UserID:  userID,
+		Expires: time.Now().Add(time.Hour * 24),
+	}
+
+	// TODO: maybe use first 12bits of the v7 uuid to extract date time?
+	err = u.dal.UserTokens(u.ctx).Create(nil, token)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Str("userID", userID.String()).Msg("failed to create token in db")
+		return nil, errors.New("failed to create user token")
+	}
+
+	return token, nil
 }

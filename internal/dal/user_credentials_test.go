@@ -67,7 +67,7 @@ func (suite *UserCredentialsDALTestSuite) TearDownTest() {}
 
 func (suite *UserCredentialsDALTestSuite) TestCreate_OK() {
 	userCredential := models.UserCredential{
-		ID:                            []byte("test"),
+		ID:                            []byte(uuid.New().String()),
 		UserID:                        suite.userUUID,
 		PublicKey:                     []byte("test-public-key"),
 		AttestationType:               "basic",
@@ -93,9 +93,7 @@ func (suite *UserCredentialsDALTestSuite) TestCreate_OK() {
 	tx, err := suite.DB.BeginTx(suite.ctx, pgx.TxOptions{})
 	suite.NoError(err)
 
-	newUserUUID := uuid.New()
-	userCredential.ID = []byte("test-tx")
-	userCredential.UserID = newUserUUID
+	userCredential.ID = []byte(uuid.New().String())
 	err = suite.userCredentialsDAL.Create(tx, &userCredential)
 	suite.NoError(err)
 }
