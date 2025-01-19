@@ -18,6 +18,8 @@ type UserBLL interface {
 	CreateUserSession() (*protocol.CredentialCreation, error)
 	RegisterSuperAdmin(*dto.FinishRegistrationRequest) error
 	CreateToken(uuid.UUID) (*models.UserToken, error)
+	GetUserByID(uuid.UUID) (*models.User, error)
+	ValidateTokenAndGetUser(uuid.UUID) (*models.User, error)
 }
 type userBLL struct {
 	ctx    context.Context
@@ -165,4 +167,43 @@ func (u *userBLL) CreateToken(userID uuid.UUID) (*models.UserToken, error) {
 	}
 
 	return token, nil
+}
+
+func (u *userBLL) GetUserByID(userID uuid.UUID) (*models.User, error) {
+	const funcName = "GetUserByID"
+
+	user, err := u.dal.User(u.ctx).GetByID(userID)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Str("userID", userID.String()).Msg("failed to get user from db")
+		return nil, errors.New("failed to get user")
+	}
+	if user == nil {
+		u.logger.Err(err).Str("func", funcName).Str("userID", userID.String()).Msg("failed to get user from db")
+		return nil, errors.New("failed to get user")
+	}
+
+	return user, nil
+}
+
+func (u *userBLL) ValidateTokenAndGetUser(tokenID uuid.UUID) (*models.User, error) {
+	const funcName = "ValidateTokenAndGetUser"
+
+	userToken, err := u.dal.UserTokens(u.ctx).GetByIdWithUser(tokenID)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Str("tokenID", tokenID.String()).Msg("failed to get user token from db")
+		return nil, errors.New("failed to validate token")
+	}
+	// make sure not nil
+	if userToken == nil || userToken.User == nil {
+		u.logger.Err(err).Str("func", funcName).Str("tokenID", tokenID.String()).Msg("returned nil token/user")
+		return nil, errors.New("failed to retrieve user data")
+	}
+
+	// check if expired
+	if !time.Now().Before(userToken.Expires) {
+		u.logger.Err(err).Str("func", funcName).Str("tokenID", tokenID.String()).Msg("user token expired")
+		return nil, errors.New("expired token")
+	}
+
+	return userToken.User, nil
 }

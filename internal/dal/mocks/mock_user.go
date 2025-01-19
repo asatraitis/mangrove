@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/asatraitis/mangrove/internal/dal/models"
+	uuid "github.com/google/uuid"
 	pgx "github.com/jackc/pgx/v5"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -53,4 +54,19 @@ func (m *MockUserDAL) Create(arg0 pgx.Tx, arg1 *models.User) error {
 func (mr *MockUserDALMockRecorder) Create(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserDAL)(nil).Create), arg0, arg1)
+}
+
+// GetByID mocks base method.
+func (m *MockUserDAL) GetByID(arg0 uuid.UUID) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", arg0)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockUserDALMockRecorder) GetByID(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUserDAL)(nil).GetByID), arg0)
 }

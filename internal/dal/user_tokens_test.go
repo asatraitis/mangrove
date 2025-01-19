@@ -76,7 +76,7 @@ func (suite *UserTokensDALTestSuite) TestCreateGetUserToken_OK() {
 	err := suite.userTokensDAL.Create(nil, testToken)
 	suite.NoError(err)
 
-	createdToken, err := suite.userTokensDAL.Get(testToken.ID)
+	createdToken, err := suite.userTokensDAL.GetByID(testToken.ID)
 	suite.NoError(err)
 	suite.NotNil(createdToken)
 
@@ -87,4 +87,26 @@ func (suite *UserTokensDALTestSuite) TestCreateGetUserToken_OK() {
 	// expected: time.Date(2025, time.January, 18, 9, 45, 18, 930400500, time.Local)
 	// actual  : time.Date(2025, time.January, 18, 9, 45, 18, 930400000, time.UTC)
 	suite.Equal(testToken.Expires.Format(time.DateTime), createdToken.Expires.Format(time.DateTime))
+}
+
+func (suite *UserTokensDALTestSuite) TestGetByIdWithUser_OK() {
+	testToken := &models.UserToken{
+		ID:      uuid.New(),
+		UserID:  suite.testUserID,
+		Expires: time.Now().Add(time.Hour * 24),
+	}
+	err := suite.userTokensDAL.Create(nil, testToken)
+	suite.NoError(err)
+
+	createdToken, err := suite.userTokensDAL.GetByIdWithUser(testToken.ID)
+	suite.NoError(err)
+	suite.NotNil(createdToken)
+	suite.NotNil(createdToken.User)
+	suite.Equal(testToken.ID.String(), createdToken.ID.String())
+	suite.Equal(testToken.UserID.String(), createdToken.UserID.String())
+	suite.Equal(testToken.Expires.Format(time.DateTime), createdToken.Expires.Format(time.DateTime))
+	suite.Equal(suite.testUserID.String(), createdToken.UserID.String())
+	suite.Equal("Test User Credentials", createdToken.User.DisplayName)
+	suite.Equal(models.UserRole("user"), createdToken.User.Role)
+	suite.Equal(models.UserStatus("active"), createdToken.User.Status)
 }

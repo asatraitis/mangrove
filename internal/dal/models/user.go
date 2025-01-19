@@ -2,7 +2,7 @@ package models
 
 import "github.com/google/uuid"
 
-type UserStatus string
+type UserStatus = string
 
 const (
 	USER_STATUS_ACTIVE    UserStatus = "active"
@@ -26,4 +26,5 @@ type User struct {
 	Email       *string    `json:"email"`
 	Status      UserStatus `json:"status"`
 	Role        UserRole   `json:"role"`
+	Token       *UserToken `json:"token,omitempty"`
 }

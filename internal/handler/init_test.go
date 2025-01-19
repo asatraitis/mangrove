@@ -41,7 +41,7 @@ func (suite *InitHandlerTestSuite) SetupSuite() {
 			vars:       &configs.EnvVariables{},
 			appConfig:  appConfig,
 			bll:        suite.bll,
-			middleware: NewMiddleware(&configs.EnvVariables{}),
+			middleware: NewMiddleware(&configs.EnvVariables{}, suite.bll),
 		}, http.NewServeMux())
 }
 func (suite *InitHandlerTestSuite) SetupTest() {}

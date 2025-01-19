@@ -34,7 +34,7 @@ func NewHandler(logger zerolog.Logger, bll bll.BLL, vars *configs.EnvVariables, 
 			vars:       vars,
 			appConfig:  appConfig,
 			bll:        bll,
-			middleware: NewMiddleware(vars),
+			middleware: NewMiddleware(vars, bll),
 		},
 	}
 }

@@ -68,6 +68,17 @@ func (suite *UserDALTestSuite) TestCreate_OK() {
 	user.Username = "test-with-tx"
 	err = suite.userDAL.Create(tx, user)
 	suite.NoError(err)
+	err = tx.Commit(suite.ctx)
+	suite.NoError(err)
+
+	createdUser, err := suite.userDAL.GetByID(userUUID)
+	suite.NoError(err)
+
+	suite.Equal(user.ID.String(), createdUser.ID.String())
+	suite.Equal(user.Username, createdUser.Username)
+	suite.Equal(user.DisplayName, createdUser.DisplayName)
+	suite.Equal(user.Status, createdUser.Status)
+	suite.Equal(user.Role, createdUser.Role)
 }
 
 func (suite *UserDALTestSuite) TestCreate_FailNilUser() {

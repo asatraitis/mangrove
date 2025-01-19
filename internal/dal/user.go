@@ -5,12 +5,14 @@ import (
 	"errors"
 
 	"github.com/asatraitis/mangrove/internal/dal/models"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 //go:generate mockgen -destination=./mocks/mock_user.go -package=mocks github.com/asatraitis/mangrove/internal/dal UserDAL
 type UserDAL interface {
 	Create(pgx.Tx, *models.User) error
+	GetByID(uuid.UUID) (*models.User, error)
 }
 
 type userDAL struct {
@@ -67,4 +69,19 @@ func (ud *userDAL) Create(tx pgx.Tx, user *models.User) error {
 		ud.logger.Err(err).Str("func", funcName).Msg("failed to insert user")
 	}
 	return err
+}
+
+func (ud *userDAL) GetByID(ID uuid.UUID) (*models.User, error) {
+	const funcName = "GetByID"
+
+	row := ud.db.QueryRow(ud.ctx, "SELECT id, username, display_name, email, status, role FROM users WHERE id = $1", ID)
+	user := &models.User{}
+
+	err := row.Scan(&user.ID, &user.Username, &user.DisplayName, &user.Email, &user.Status, &user.Role)
+	if err != nil {
+		ud.logger.Err(err).Str("func", funcName).Msg("failed to get a user")
+		return nil, err
+	}
+
+	return user, err
 }
