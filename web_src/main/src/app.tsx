@@ -1,11 +1,10 @@
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { MantineProvider } from '@mantine/core';
-import "@mantine/core/styles.css"
+
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
+import { useAuthCtx } from './contexts/auth/useAuthCtx'
 
-import { AuthCtx, defaultAuthUser } from './contexts/auth';
 
 // Create a new router instance
 const router = createRouter({ routeTree, context: undefined! })
@@ -18,11 +17,8 @@ declare module '@tanstack/react-router' {
 }
 
 export default function App() {
+    const {user} = useAuthCtx()
     return (
-        <AuthCtx.Provider value={defaultAuthUser}>
-            <MantineProvider defaultColorScheme="auto">
-                <RouterProvider router={router} context={{auth: defaultAuthUser}} />
-            </MantineProvider>
-        </AuthCtx.Provider>
+      <RouterProvider router={router} context={{auth: user}} />
     )
 }

@@ -33,14 +33,14 @@ func (m *middleware) AuthValidationMiddleware(next HandlerFuncType) HandlerFuncT
 		authToken, err := r.Cookie("auth_token")
 		if err != nil {
 			sendErrResponse[any](w, &dto.ResponseError{
-				Message: "failed to validate token",
+				Message: "failed to validate token: no auth token",
 				Code:    "ERROR_CODE_TBD",
 			}, http.StatusBadRequest)
 			return
 		}
-		if authToken.Value != "" {
+		if authToken.Value == "" {
 			sendErrResponse[any](w, &dto.ResponseError{
-				Message: "failed to validate token",
+				Message: "failed to validate token: no auth token",
 				Code:    "ERROR_CODE_TBD",
 			}, http.StatusBadRequest)
 			return
@@ -48,7 +48,7 @@ func (m *middleware) AuthValidationMiddleware(next HandlerFuncType) HandlerFuncT
 		tokenID, err := uuid.Parse(authToken.Value)
 		if err != nil {
 			sendErrResponse[any](w, &dto.ResponseError{
-				Message: "failed to validate token",
+				Message: "failed to validate token: bad token",
 				Code:    "ERROR_CODE_TBD",
 			}, http.StatusBadRequest)
 			return

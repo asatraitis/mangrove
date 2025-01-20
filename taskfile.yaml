@@ -58,6 +58,9 @@ tasks:
     cmds:
       - npx tsc
       - npx vite build web_src/main
+  ui-main-watch-build:
+    cmds:
+      - npx vite build web_src/main --watch
   ui-main-preview:
     cmds:
       - npx vite preview web_src/main

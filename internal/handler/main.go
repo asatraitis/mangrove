@@ -27,7 +27,7 @@ func NewMainHandler(baseHandler *BaseHandler, mux *http.ServeMux) MainHandler {
 
 func (h *mainHandler) register() {
 	h.mux.Handle("GET /", http.FileServer(http.Dir("./dist/main")))
-	h.mux.HandleFunc("GET /v1/me", h.middleware.AuthValidationMiddleware(h.me))
+	h.mux.HandleFunc("GET /v1/me", h.middleware.AuthValidationMiddleware(h.middleware.CsrfValidationMiddleware(h.me)))
 }
 
 func (h *mainHandler) me(w http.ResponseWriter, r *http.Request) {

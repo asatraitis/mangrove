@@ -1,6 +1,6 @@
 import { createRootRouteWithContext} from '@tanstack/react-router'
 
-import { AuthUser } from '../contexts/auth'
+import { AuthUser } from '../contexts/auth/auth'
 import Index from '../pages/index'
 
 interface RouterCtx {

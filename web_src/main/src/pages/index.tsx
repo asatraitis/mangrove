@@ -1,11 +1,10 @@
-import { useContext } from "react";
-import { AuthCtx } from "../contexts/auth";
 import { Link, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import { useAuthCtx } from "../contexts/auth/useAuthCtx";
 
 export default function Index() {
-    const auth = useContext(AuthCtx);
-    if (auth.status !== 'valid') {
+    const {user} = useAuthCtx()
+    if (user.status !== 'active') {
         return <Outlet />
     }
     

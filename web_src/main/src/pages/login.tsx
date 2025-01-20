@@ -1,14 +1,28 @@
 import { Card, Button, Loader } from '@mantine/core';
 import classes from './login.module.css';
 import { useEffect, useState } from 'react';
+import { useRouter, getRouteApi } from '@tanstack/react-router';
 
+import ApiClient from '../services/apiClient'
+import { useAuthCtx } from '../contexts/auth/useAuthCtx';
+
+const routeApi = getRouteApi('/login')
 export default function Login() {
+    const search = routeApi.useSearch()
+
+    const router = useRouter()
+    const {setUser} = useAuthCtx()
     const [loading, setLoading] = useState(true)
     useEffect(() => {
-        setTimeout(() => {
+        const client = new ApiClient("http://localhost:3030")
+        client.me().then(data => {
             setLoading(false)
-        }, 2000)
-    }, [])
+            setUser(data.response!)
+            router.history.push(search.redirect)
+        }).catch(err => {
+            console.log({err})
+        })
+    })
     return (
     <div className={classes.container}>
         <Card withBorder p="xl" radius="lg">
