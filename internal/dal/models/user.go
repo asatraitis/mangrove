@@ -20,11 +20,12 @@ const (
 )
 
 type User struct {
-	ID          uuid.UUID  `json:"id"`
-	Username    string     `json:"username"`
-	DisplayName string     `json:"displayName"`
-	Email       *string    `json:"email"`
-	Status      UserStatus `json:"status"`
-	Role        UserRole   `json:"role"`
-	Token       *UserToken `json:"token,omitempty"`
+	ID          uuid.UUID         `json:"id"`
+	Username    string            `json:"username"`
+	DisplayName string            `json:"displayName"`
+	Email       *string           `json:"email"`
+	Status      UserStatus        `json:"status"`
+	Role        UserRole          `json:"role"`
+	Token       *UserToken        `json:"token,omitempty"`
+	Credentials []*UserCredential `json:"credentials,omitempty"`
 }

@@ -1,4 +1,4 @@
-import {Response, MeResponse} from "@dto/types"
+import {Response, MeResponse, InitLoginResponse} from "@dto/types"
 
 interface IApiCLient {
     me(): Promise<Response<MeResponse>>
@@ -6,28 +6,22 @@ interface IApiCLient {
 
 export default class ApiClient implements IApiCLient {
     private url: string
+    private apiEndpoint = "/v1"
 
     static async call<T>(url: string, config?: RequestInit): Promise<Response<T>> {
+        const csrfCookie = ApiClient.getCookie("csrf_token")
+        const parts = csrfCookie.split(".")
+        const newConfig = {...config, headers: {...(config?.headers ?? {}), "X-CSRF-Token": parts[0]}}
         try {
-            const csrfCookie = ApiClient.getCookie("csrf_token")
-            const parts = csrfCookie.split(".")
-            const newConfig = {...config, headers: {...(config?.headers ?? {}), "X-CSRF-Token": parts[0]}}
-
             const res = await fetch(url, newConfig)
             const contentType = res.headers.get("content-type")
             if (contentType && contentType.includes('application/json')) {
                 const data = await res.json() as Response<T>
-                if (!res.ok) {
-                    throw new Error(data.error?.message)
-                }
-                if (data.error) {
-                    throw new Error(data.error?.message)
-                }
                 return data
             }
             return {}
         } catch(err) {
-            throw new Error(`request to ${url} failed. ${err}`)
+            return {error: {message: `${err}`, code: "TBD"}} as Response<T>
         }
     }
     static getCookie(name: string): string {
@@ -50,6 +44,9 @@ export default class ApiClient implements IApiCLient {
     }
 
     async me() {
-        return ApiClient.call<MeResponse>(`${this.url}/v1/me`)
+        return ApiClient.call<MeResponse>(`${this.url}${this.apiEndpoint}/me`)
+    }
+    async initLogin(username: string) {
+        return ApiClient.call<InitLoginResponse>(`${this.url}${this.apiEndpoint}/login`, {method: "POST", body: JSON.stringify({username})})
     }
 }

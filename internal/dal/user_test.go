@@ -16,9 +16,10 @@ import (
 type UserDALTestSuite struct {
 	suite.Suite
 
-	ctx     context.Context
-	DB      *pgxpool.Pool
-	userDAL UserDAL
+	ctx         context.Context
+	DB          *pgxpool.Pool
+	userDAL     UserDAL
+	userCredDAL UserCredentialsDAL
 }
 
 func TestUserDALTestSuiteIntegration(t *testing.T) {
@@ -37,6 +38,10 @@ func (suite *UserDALTestSuite) SetupSuite() {
 	suite.DB = dbpool
 
 	suite.userDAL = NewUserDAL(suite.ctx, &BaseDAL{
+		logger: zerolog.Nop(),
+		db:     suite.DB,
+	})
+	suite.userCredDAL = NewUserCredentialsDAL(suite.ctx, &BaseDAL{
 		logger: zerolog.Nop(),
 		db:     suite.DB,
 	})
@@ -85,4 +90,39 @@ func (suite *UserDALTestSuite) TestCreate_FailNilUser() {
 	err := suite.userDAL.Create(nil, nil)
 	suite.Error(err)
 	suite.ErrorContains(err, "nil user")
+}
+
+func (suite *UserDALTestSuite) TestGetByUsernameWithCredentials_OK() {
+	userUUID := uuid.New()
+	email := "test@email.com"
+
+	user := &models.User{
+		ID:          userUUID,
+		Username:    "test" + userUUID.String(),
+		DisplayName: "Test User",
+		Email:       &email,
+		Status:      models.USER_STATUS_ACTIVE,
+		Role:        models.USER_ROLE_USER,
+	}
+
+	err := suite.userDAL.Create(nil, user)
+	suite.NoError(err)
+
+	createdUser, err := suite.userDAL.GetByUsernameWithCredentials("test" + userUUID.String())
+	suite.NoError(err)
+
+	suite.Equal(user.ID.String(), createdUser.ID.String())
+	suite.Equal(user.Username, createdUser.Username)
+	suite.Equal(user.DisplayName, createdUser.DisplayName)
+	suite.Equal(user.Status, createdUser.Status)
+	suite.Equal(user.Role, createdUser.Role)
+	suite.Nil(user.Credentials)
+
+	testCredential := getUserCredential(userUUID)
+	err = suite.userCredDAL.Create(nil, testCredential)
+	suite.NoError(err)
+
+	createdUser, err = suite.userDAL.GetByUsernameWithCredentials("test" + userUUID.String())
+	suite.NoError(err)
+	suite.NotNil(createdUser.Credentials)
 }

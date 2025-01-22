@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/asatraitis/mangrove/internal/dal/models"
 	"github.com/asatraitis/mangrove/internal/utils"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -35,6 +36,7 @@ func (wau *WebAuthNUser) WebAuthnCredentials() []webauthn.Credential {
 type WebAuthN interface {
 	BeginRegistration() (*protocol.CredentialCreation, error)
 	FinishRegistration(string, *protocol.CredentialCreationResponse) (*webauthn.Credential, error)
+	BeginLogin(*models.User, []webauthn.Credential) (*protocol.CredentialAssertion, string, error)
 }
 type webAuthN struct {
 	logger zerolog.Logger
@@ -144,5 +146,24 @@ func (w *webAuthN) FinishRegistration(userID string, credResp *protocol.Credenti
 	}
 
 	return credential, nil
+}
 
+func (w *webAuthN) BeginLogin(user *models.User, creds []webauthn.Credential) (*protocol.CredentialAssertion, string, error) {
+	cacheKey, err := uuid.NewV7()
+	if err != nil {
+		// TODO: add logging
+		return nil, "", err
+	}
+	placeholderUser := &WebAuthNUser{
+		ID:          user.ID,
+		Name:        user.Username,
+		DisplayName: user.DisplayName,
+		Credentials: creds,
+	}
+	opts, session, err := w.wa.BeginLogin(placeholderUser)
+	if err != nil {
+		return nil, "", err
+	}
+	w.cache.SetValue(cacheKey.String(), session)
+	return opts, cacheKey.String(), nil
 }

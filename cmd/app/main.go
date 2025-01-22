@@ -18,6 +18,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// TODO: Add graceful shutdown
 func main() {
 	ctx := context.Background()
 	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()

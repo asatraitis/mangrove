@@ -9,6 +9,21 @@ export interface FinishRegistrationRequest {
 }
 
 //////////
+// source: init_login_request.go
+
+export interface InitLoginRequest {
+  username: string;
+}
+
+//////////
+// source: init_login_response.go
+
+export interface InitLoginResponse {
+  publicKey: any /* protocol.PublicKeyCredentialRequestOptions */;
+  sessionKey: string;
+}
+
+//////////
 // source: init_registration_request.go
 
 export interface InitRegistrationRequest {

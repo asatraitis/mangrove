@@ -6,7 +6,6 @@ import (
 
 	"github.com/asatraitis/mangrove/internal/dal/models"
 	"github.com/asatraitis/mangrove/internal/utils"
-	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -66,35 +65,16 @@ func (suite *UserCredentialsDALTestSuite) SetupTest() {
 func (suite *UserCredentialsDALTestSuite) TearDownTest() {}
 
 func (suite *UserCredentialsDALTestSuite) TestCreate_OK() {
-	userCredential := models.UserCredential{
-		ID:                            []byte(uuid.New().String()),
-		UserID:                        suite.userUUID,
-		PublicKey:                     []byte("test-public-key"),
-		AttestationType:               "basic",
-		Transport:                     []protocol.AuthenticatorTransport{protocol.USB, protocol.NFC},
-		FlagUserPresent:               true,
-		FlagVerified:                  true,
-		FlagBackupEligible:            true,
-		FlagBackupState:               true,
-		AuthAaguid:                    []byte("test-aaguid"),
-		AuthSignCount:                 uint32(1),
-		AuthCloneWarning:              true,
-		AuthAttachment:                protocol.CrossPlatform,
-		AttestationClientDataJson:     []byte("test-client-data-json"),
-		AttestationDataHash:           []byte("test-data-hash"),
-		AttestationAuthenticatorData:  []byte("test-authenticator-data"),
-		AttestationPublicKeyAlgorithm: int64(1),
-		AttestationObject:             []byte("test-attestation-object"),
-	}
+	userCredential := getUserCredential(suite.userUUID)
 
-	err := suite.userCredentialsDAL.Create(nil, &userCredential)
+	err := suite.userCredentialsDAL.Create(nil, userCredential)
 	suite.NoError(err)
 
 	tx, err := suite.DB.BeginTx(suite.ctx, pgx.TxOptions{})
 	suite.NoError(err)
 
 	userCredential.ID = []byte(uuid.New().String())
-	err = suite.userCredentialsDAL.Create(tx, &userCredential)
+	err = suite.userCredentialsDAL.Create(tx, userCredential)
 	suite.NoError(err)
 }
 

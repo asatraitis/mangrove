@@ -138,3 +138,4 @@ func (suite *UserBllTestSuite) TestValidateTokenAndGetUser_FAIL_ExpiredToken() {
 func (suite *UserBllTestSuite) TestRegisterSuperAdmin_OK() {
 
 }
+func (suite *UserBllTestSuite) TestInitLogin_OK() {}

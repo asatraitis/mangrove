@@ -9,8 +9,10 @@ import (
 	"github.com/asatraitis/mangrove/internal/dal"
 	"github.com/asatraitis/mangrove/internal/dal/models"
 	"github.com/asatraitis/mangrove/internal/dto"
+	"github.com/asatraitis/mangrove/internal/typeconv"
 	"github.com/asatraitis/mangrove/internal/utils"
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 )
 
@@ -20,6 +22,7 @@ type UserBLL interface {
 	CreateToken(uuid.UUID) (*models.UserToken, error)
 	GetUserByID(uuid.UUID) (*models.User, error)
 	ValidateTokenAndGetUser(uuid.UUID) (*models.User, error)
+	InitLogin(string) (protocol.PublicKeyCredentialRequestOptions, string, error)
 }
 type userBLL struct {
 	ctx    context.Context
@@ -206,4 +209,33 @@ func (u *userBLL) ValidateTokenAndGetUser(tokenID uuid.UUID) (*models.User, erro
 	}
 
 	return userToken.User, nil
+}
+
+func (u *userBLL) InitLogin(username string) (protocol.PublicKeyCredentialRequestOptions, string, error) {
+	const funcName = "InitLogin"
+
+	user, err := u.dal.User(u.ctx).GetByUsernameWithCredentials(username)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Msg("failed to init login credentials")
+		return protocol.PublicKeyCredentialRequestOptions{}, "", err
+	}
+
+	var webauthnCreds []webauthn.Credential
+	for _, userCred := range user.Credentials {
+		webauthnCred, err := typeconv.ConvertUserCredentialToWebauthnCredential(userCred)
+		if err != nil {
+			u.logger.Err(err).Str("func", funcName).Msg("failed to typeconv credential")
+			return protocol.PublicKeyCredentialRequestOptions{}, "", errors.New("failed to init login credentials")
+		}
+		webauthnCreds = append(webauthnCreds, *webauthnCred)
+	}
+
+	creds, sessionKey, err := u.webauthn.BeginLogin(user, webauthnCreds)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Msg("failed to init login credentials")
+		return protocol.PublicKeyCredentialRequestOptions{}, "", err
+	}
+
+	return creds.Response, sessionKey, nil
+
 }
