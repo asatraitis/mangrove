@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/asatraitis/mangrove/internal/dal/models"
+	uuid "github.com/google/uuid"
 	pgx "github.com/jackc/pgx/v5"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -53,4 +54,33 @@ func (m *MockUserCredentialsDAL) Create(tx pgx.Tx, credential *models.UserCreden
 func (mr *MockUserCredentialsDALMockRecorder) Create(tx, credential any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserCredentialsDAL)(nil).Create), tx, credential)
+}
+
+// GetByUserID mocks base method.
+func (m *MockUserCredentialsDAL) GetByUserID(arg0 uuid.UUID) ([]*models.UserCredential, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUserID", arg0)
+	ret0, _ := ret[0].([]*models.UserCredential)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUserID indicates an expected call of GetByUserID.
+func (mr *MockUserCredentialsDALMockRecorder) GetByUserID(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockUserCredentialsDAL)(nil).GetByUserID), arg0)
+}
+
+// UpdateSignCount mocks base method.
+func (m *MockUserCredentialsDAL) UpdateSignCount(arg0 pgx.Tx, arg1 []byte, arg2 uint32) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSignCount", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSignCount indicates an expected call of UpdateSignCount.
+func (mr *MockUserCredentialsDALMockRecorder) UpdateSignCount(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSignCount", reflect.TypeOf((*MockUserCredentialsDAL)(nil).UpdateSignCount), arg0, arg1, arg2)
 }

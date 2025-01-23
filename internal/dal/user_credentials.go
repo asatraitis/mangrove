@@ -5,12 +5,16 @@ import (
 	"errors"
 
 	"github.com/asatraitis/mangrove/internal/dal/models"
+	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 //go:generate mockgen -destination=./mocks/mock_user_credential.go -package=mocks github.com/asatraitis/mangrove/internal/dal UserCredentialsDAL
 type UserCredentialsDAL interface {
 	Create(tx pgx.Tx, credential *models.UserCredential) error
+	GetByUserID(uuid.UUID) ([]*models.UserCredential, error)
+	UpdateSignCount(pgx.Tx, []byte, uint32) error
 }
 type userCredentialsDAL struct {
 	ctx context.Context
@@ -90,5 +94,37 @@ func (uc *userCredentialsDAL) Create(tx pgx.Tx, credential *models.UserCredentia
 		uc.logger.Err(err).Str("func", funcName).Msg("failed to insert user credential")
 	}
 
+	return err
+}
+
+func (uc *userCredentialsDAL) GetByUserID(userID uuid.UUID) ([]*models.UserCredential, error) {
+	const funcName = "GetByUserID"
+
+	const userCredentialsQuery = "SELECT id, user_id, public_key, attestation_type, transport, flag_user_present, flag_verified, flag_backup_eligible, flag_backup_state, auth_aaguid, auth_sign_count, auth_clone_warning, auth_attachment, attestation_client_data_json, attestation_data_hash, attestation_authenticator_data, attestation_public_key_algorithm, attestation_object FROM user_credentials WHERE user_id = $1"
+	var credentials []*models.UserCredential
+	err := pgxscan.Select(uc.ctx, uc.db, &credentials, userCredentialsQuery, userID)
+	if err != nil {
+		uc.logger.Err(err).Str("func", funcName).Msg("failed to get a user credentials")
+		return nil, err
+	}
+
+	return credentials, nil
+}
+
+func (uc *userCredentialsDAL) UpdateSignCount(tx pgx.Tx, ID []byte, signCount uint32) error {
+	const funcName = "UpdateSignCount"
+	const query = "UPDATE user_credentials SET auth_sign_count=$1 WHERE id=$2"
+
+	if tx == nil {
+		_, err := uc.db.Exec(uc.ctx, query, signCount, ID)
+		if err != nil {
+			uc.logger.Err(err).Str("func", funcName).Msg("failed to update user credential sign count")
+		}
+		return err
+	}
+	_, err := tx.Exec(uc.ctx, query, signCount, ID)
+	if err != nil {
+		uc.logger.Err(err).Str("func", funcName).Msg("failed to update user credential sign count")
+	}
 	return err
 }

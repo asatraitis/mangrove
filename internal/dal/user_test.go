@@ -16,10 +16,9 @@ import (
 type UserDALTestSuite struct {
 	suite.Suite
 
-	ctx         context.Context
-	DB          *pgxpool.Pool
-	userDAL     UserDAL
-	userCredDAL UserCredentialsDAL
+	ctx context.Context
+	DB  *pgxpool.Pool
+	dal DAL
 }
 
 func TestUserDALTestSuiteIntegration(t *testing.T) {
@@ -37,14 +36,8 @@ func (suite *UserDALTestSuite) SetupSuite() {
 	}
 	suite.DB = dbpool
 
-	suite.userDAL = NewUserDAL(suite.ctx, &BaseDAL{
-		logger: zerolog.Nop(),
-		db:     suite.DB,
-	})
-	suite.userCredDAL = NewUserCredentialsDAL(suite.ctx, &BaseDAL{
-		logger: zerolog.Nop(),
-		db:     suite.DB,
-	})
+	dal := NewDAL(zerolog.Nop(), suite.DB)
+	suite.dal = dal
 }
 func (suite *UserDALTestSuite) SetupTest()    {}
 func (suite *UserDALTestSuite) TearDownTest() {}
@@ -62,7 +55,7 @@ func (suite *UserDALTestSuite) TestCreate_OK() {
 		Role:        models.USER_ROLE_USER,
 	}
 
-	err := suite.userDAL.Create(nil, user)
+	err := suite.dal.User(suite.ctx).Create(nil, user)
 	suite.NoError(err)
 
 	tx, err := suite.DB.BeginTx(suite.ctx, pgx.TxOptions{})
@@ -71,12 +64,12 @@ func (suite *UserDALTestSuite) TestCreate_OK() {
 	userUUID = uuid.New()
 	user.ID = userUUID
 	user.Username = "test-with-tx"
-	err = suite.userDAL.Create(tx, user)
+	err = suite.dal.User(suite.ctx).Create(tx, user)
 	suite.NoError(err)
 	err = tx.Commit(suite.ctx)
 	suite.NoError(err)
 
-	createdUser, err := suite.userDAL.GetByID(userUUID)
+	createdUser, err := suite.dal.User(suite.ctx).GetByID(userUUID)
 	suite.NoError(err)
 
 	suite.Equal(user.ID.String(), createdUser.ID.String())
@@ -87,7 +80,7 @@ func (suite *UserDALTestSuite) TestCreate_OK() {
 }
 
 func (suite *UserDALTestSuite) TestCreate_FailNilUser() {
-	err := suite.userDAL.Create(nil, nil)
+	err := suite.dal.User(suite.ctx).Create(nil, nil)
 	suite.Error(err)
 	suite.ErrorContains(err, "nil user")
 }
@@ -105,10 +98,10 @@ func (suite *UserDALTestSuite) TestGetByUsernameWithCredentials_OK() {
 		Role:        models.USER_ROLE_USER,
 	}
 
-	err := suite.userDAL.Create(nil, user)
+	err := suite.dal.User(suite.ctx).Create(nil, user)
 	suite.NoError(err)
 
-	createdUser, err := suite.userDAL.GetByUsernameWithCredentials("test" + userUUID.String())
+	createdUser, err := suite.dal.User(suite.ctx).GetByUsernameWithCredentials("test" + userUUID.String())
 	suite.NoError(err)
 
 	suite.Equal(user.ID.String(), createdUser.ID.String())
@@ -119,10 +112,10 @@ func (suite *UserDALTestSuite) TestGetByUsernameWithCredentials_OK() {
 	suite.Nil(user.Credentials)
 
 	testCredential := getUserCredential(userUUID)
-	err = suite.userCredDAL.Create(nil, testCredential)
+	err = suite.dal.UserCredentials(suite.ctx).Create(nil, testCredential)
 	suite.NoError(err)
 
-	createdUser, err = suite.userDAL.GetByUsernameWithCredentials("test" + userUUID.String())
+	createdUser, err = suite.dal.User(suite.ctx).GetByUsernameWithCredentials("test" + userUUID.String())
 	suite.NoError(err)
 	suite.NotNil(createdUser.Credentials)
 }

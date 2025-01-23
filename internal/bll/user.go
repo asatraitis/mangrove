@@ -23,6 +23,7 @@ type UserBLL interface {
 	GetUserByID(uuid.UUID) (*models.User, error)
 	ValidateTokenAndGetUser(uuid.UUID) (*models.User, error)
 	InitLogin(string) (protocol.PublicKeyCredentialRequestOptions, string, error)
+	FinishLogin(*dto.FinishLoginRequest) (*dto.MeResponse, error)
 }
 type userBLL struct {
 	ctx    context.Context
@@ -237,5 +238,58 @@ func (u *userBLL) InitLogin(username string) (protocol.PublicKeyCredentialReques
 	}
 
 	return creds.Response, sessionKey, nil
+}
 
+func (u *userBLL) FinishLogin(login *dto.FinishLoginRequest) (*dto.MeResponse, error) {
+	const funcName = "FinishLogin"
+
+	if login == nil {
+		err := errors.New("missing req struct")
+		u.logger.Err(err).Str("func", funcName).Msg("failed to login")
+		return nil, err
+	}
+	if login.SessionKey == "" {
+		err := errors.New("missing session key")
+		u.logger.Err(err).Str("func", funcName).Msg("failed to login")
+		return nil, err
+	}
+
+	session := u.webauthn.GetSession(login.SessionKey)
+	if session == nil {
+		err := errors.New("missing session for the key")
+		u.logger.Err(err).Str("func", funcName).Msg("failed to login")
+		return nil, err
+	}
+
+	userID, err := uuid.Parse(string(session.UserID))
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Msg("failed to get user")
+		return nil, err
+	}
+
+	user, err := u.dal.User(u.ctx).GetByIdWithCredentials(userID)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Msg("failed get user from db")
+		return nil, err
+	}
+
+	waCredential, err := u.webauthn.FinishLogin(login, user)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Msg("failed webauthn validation")
+		return nil, err
+	}
+
+	err = u.dal.UserCredentials(u.ctx).UpdateSignCount(nil, waCredential.ID, waCredential.Authenticator.SignCount)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Msg("failed get update credential")
+		return nil, err
+	}
+
+	meResponse, err := typeconv.ConvertUserToMeResponse(user)
+	if err != nil {
+		u.logger.Err(err).Str("func", funcName).Msg("failed to typeconv user to me")
+		return nil, err
+	}
+
+	return meResponse, nil
 }

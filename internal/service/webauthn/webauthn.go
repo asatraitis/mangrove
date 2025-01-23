@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/asatraitis/mangrove/internal/dal/models"
+	"github.com/asatraitis/mangrove/internal/dto"
+	"github.com/asatraitis/mangrove/internal/typeconv"
 	"github.com/asatraitis/mangrove/internal/utils"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -37,6 +39,8 @@ type WebAuthN interface {
 	BeginRegistration() (*protocol.CredentialCreation, error)
 	FinishRegistration(string, *protocol.CredentialCreationResponse) (*webauthn.Credential, error)
 	BeginLogin(*models.User, []webauthn.Credential) (*protocol.CredentialAssertion, string, error)
+	FinishLogin(*dto.FinishLoginRequest, *models.User) (*webauthn.Credential, error)
+	GetSession(key string) *webauthn.SessionData
 }
 type webAuthN struct {
 	logger zerolog.Logger
@@ -166,4 +170,62 @@ func (w *webAuthN) BeginLogin(user *models.User, creds []webauthn.Credential) (*
 	}
 	w.cache.SetValue(cacheKey.String(), session)
 	return opts, cacheKey.String(), nil
+}
+
+func (w *webAuthN) GetSession(key string) *webauthn.SessionData {
+	return w.cache.GetValue(key)
+}
+
+func (w *webAuthN) FinishLogin(req *dto.FinishLoginRequest, user *models.User) (*webauthn.Credential, error) {
+	const funcName = "FinishLogin"
+
+	if req.SessionKey == "" {
+		err := errors.New("could not find session in cache")
+		w.logger.Err(err).Str("func", funcName).Msg("failed to get user session")
+		return nil, err
+	}
+
+	userSession := w.cache.GetValue(req.SessionKey)
+	if userSession == nil {
+		err := errors.New("could not find session in cache")
+		w.logger.Err(err).Str("func", funcName).Msg("failed to get user session")
+		return nil, err
+	}
+
+	var credentials []webauthn.Credential
+	for _, credential := range user.Credentials {
+		waCredential, err := typeconv.ConvertUserCredentialToWebauthnCredential(credential)
+		if err != nil {
+			w.logger.Err(err).Str("func", funcName).Msg("failed to typeconv model.credential to webauthn.credential")
+			return nil, err
+		}
+		credentials = append(credentials, *waCredential)
+	}
+
+	waUser := WebAuthNUser{
+		ID:          user.ID,
+		Name:        user.Username,
+		DisplayName: user.DisplayName,
+		Credentials: credentials,
+	}
+
+	parsedCred, err := req.Credential.Parse()
+	if err != nil {
+		w.logger.Err(err).Str("func", funcName).Msg("failed to parse credentials")
+		return nil, err
+	}
+
+	credential, err := w.wa.ValidateLogin(&waUser, *userSession, parsedCred)
+	if err != nil {
+		w.logger.Err(err).Str("func", funcName).Msg("failed to validate login")
+		return nil, err
+	}
+
+	if credential.Authenticator.CloneWarning {
+		err := errors.New("cloned key error")
+		w.logger.Err(err).Str("func", funcName).Msg("authenticator clone warning")
+		return nil, err
+	}
+
+	return credential, nil
 }

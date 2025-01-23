@@ -1,7 +1,8 @@
-import {Response, MeResponse, InitLoginResponse} from "@dto/types"
+import {Response, MeResponse, InitLoginResponse, FinishLoginRequest} from "@dto/types"
 
 interface IApiCLient {
     me(): Promise<Response<MeResponse>>
+    initLogin(username: string): Promise<Response<InitLoginResponse>>
 }
 
 export default class ApiClient implements IApiCLient {
@@ -48,5 +49,8 @@ export default class ApiClient implements IApiCLient {
     }
     async initLogin(username: string) {
         return ApiClient.call<InitLoginResponse>(`${this.url}${this.apiEndpoint}/login`, {method: "POST", body: JSON.stringify({username})})
+    }
+    async finishLogin(finishLogin: FinishLoginRequest) {
+        return ApiClient.call<MeResponse>(`${this.url}${this.apiEndpoint}/login/finish`, {method: "POST", body: JSON.stringify(finishLogin)})
     }
 }

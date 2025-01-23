@@ -20,6 +20,7 @@ type DAL interface {
 type BaseDAL struct {
 	logger zerolog.Logger
 	db     *pgxpool.Pool
+	dal    DAL
 }
 type dal struct {
 	*BaseDAL
@@ -27,12 +28,17 @@ type dal struct {
 
 func NewDAL(logger zerolog.Logger, db *pgxpool.Pool) DAL {
 	logger = logger.With().Str("component", "DAL").Logger()
-	return &dal{
+	dal := &dal{
 		BaseDAL: &BaseDAL{
 			logger: logger,
 			db:     db,
 		},
 	}
+
+	// TODO: is this an anti-pattern? Want to use different DAL's withing other DAL's
+	// would it be better to instantiate specific DALs with New...?
+	dal.dal = dal
+	return dal
 }
 
 func (d *dal) BeginTx(ctx context.Context) (pgx.Tx, error) {

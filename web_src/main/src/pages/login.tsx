@@ -36,11 +36,53 @@ export default function Login() {
         }
     }, [state, setState, setUser, router.history, search.redirect])
 
+    // TODO: refactor ASAP
     const handleAuth = async (e: FormEvent) => {
         e.preventDefault()
+        setLoading(true)
         console.log(username)
-        const credentials = await api.initLogin(username)
-        console.log({credentials})
+        // hit the api and get options to be used with authenticator
+        const opts = await api.initLogin(username)
+        console.log({opts})
+        
+        // prep the values for authenticator (base64 -> buffer array)
+        const allowCredentials = []
+        opts.response?.publicKey?.allowCredentials.forEach(c => {
+            allowCredentials.push({...c, id: base64UrlToBuffer(c.id)})
+        })
+        const keyCreds = await navigator.credentials.get({
+            publicKey: {
+                challenge: base64UrlToBuffer(opts.response?.publicKey?.challenge),
+                allowCredentials: allowCredentials,
+                extensions: opts.response?.publicKey?.extensions,
+                rpId: opts.response?.publicKey?.publicKey,
+                timeout: opts.response?.publicKey?.timouet,
+                userVerification: opts.response?.publicKey?.userVerification
+            },
+        })
+        console.log({keyCreds})
+
+        // Prep credential from authenticator for the API; buffer -> base64
+        const prepedPubKeyCred = {
+            id: keyCreds?.id,
+            type: keyCreds?.type,
+            rawId: bufferToBase64Url(keyCreds?.rawId),
+            response: {
+                authenticatorData: bufferToBase64Url(keyCreds?.response?.authenticatorData) || null,
+                clientDataJSON: bufferToBase64Url(keyCreds?.response?.clientDataJSON) || null,
+                signature: bufferToBase64Url(keyCreds?.response?.signature) || null,
+                userHandle: bufferToBase64Url(keyCreds?.response?.userHandle) || null,
+            },
+        }
+        console.log({prepedPubKeyCred})
+        const loginResponse = await api.finishLogin({credential: prepedPubKeyCred, sessionKey: opts.response?.sessionKey || ""})
+        console.log({loginResponse})
+
+        if (!loginResponse.error && loginResponse.response) {
+            setUser(loginResponse.response)
+            router.history.push(search.redirect)
+        }
+
     }
     
     return (
@@ -65,4 +107,32 @@ export default function Login() {
     </div>
         
     )
+}
+
+function prepCredReq(cred) {
+
+}
+
+function base64UrlToBuffer(base64Url: string): ArrayBuffer {
+    base64Url = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+    const binaryString = window.atob(base64Url)
+    const len = binaryString.length
+    const bytes = new Uint8Array(len)
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+    }
+    return bytes.buffer
+}
+
+function bufferToBase64Url(buffer: ArrayBuffer): string {
+    let binary = ""
+    const bytes = new Uint8Array(buffer)
+    const len = bytes.byteLength
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCodePoint(bytes[i])
+    }
+    return window.btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "")
 }

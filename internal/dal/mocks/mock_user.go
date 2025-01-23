@@ -70,3 +70,33 @@ func (mr *MockUserDALMockRecorder) GetByID(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUserDAL)(nil).GetByID), arg0)
 }
+
+// GetByIdWithCredentials mocks base method.
+func (m *MockUserDAL) GetByIdWithCredentials(arg0 uuid.UUID) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByIdWithCredentials", arg0)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByIdWithCredentials indicates an expected call of GetByIdWithCredentials.
+func (mr *MockUserDALMockRecorder) GetByIdWithCredentials(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdWithCredentials", reflect.TypeOf((*MockUserDAL)(nil).GetByIdWithCredentials), arg0)
+}
+
+// GetByUsernameWithCredentials mocks base method.
+func (m *MockUserDAL) GetByUsernameWithCredentials(arg0 string) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUsernameWithCredentials", arg0)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUsernameWithCredentials indicates an expected call of GetByUsernameWithCredentials.
+func (mr *MockUserDALMockRecorder) GetByUsernameWithCredentials(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsernameWithCredentials", reflect.TypeOf((*MockUserDAL)(nil).GetByUsernameWithCredentials), arg0)
+}

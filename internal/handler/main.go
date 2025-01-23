@@ -10,6 +10,7 @@ import (
 	"github.com/asatraitis/mangrove/internal/dto"
 	"github.com/asatraitis/mangrove/internal/typeconv"
 	"github.com/asatraitis/mangrove/internal/utils"
+	"github.com/google/uuid"
 )
 
 type MainHandler interface{}
@@ -32,6 +33,7 @@ func NewMainHandler(baseHandler *BaseHandler, mux *http.ServeMux) MainHandler {
 func (h *mainHandler) register() {
 	h.mux.HandleFunc("GET /v1/me", h.middleware.AuthValidationMiddleware(h.middleware.CsrfValidationMiddleware(h.me)))
 	h.mux.HandleFunc("POST /v1/login", h.initLogin)
+	h.mux.HandleFunc("POST /v1/login/finish", h.middleware.CsrfValidationMiddleware(h.finishLogin))
 	h.mux.Handle("GET /", http.FileServer(http.Dir("./dist/main")))
 }
 func (h *mainHandler) clientRouting() http.Handler {
@@ -141,4 +143,61 @@ func (h *mainHandler) initLogin(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(dto.Response[dto.InitLoginResponse]{Response: &res})
+}
+
+func (h *mainHandler) finishLogin(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req dto.FinishLoginRequest
+	var res *dto.MeResponse
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: "invalid request body",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	res, err = h.bll.User(ctx).FinishLogin(&req)
+	if err != nil {
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: "failed to login",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	userID, err := uuid.Parse(res.ID)
+	if err != nil {
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: "failed to parse uuid",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	token, err := h.bll.User(ctx).CreateToken(userID)
+	if err != nil {
+		h.logger.Error().Msg("failed to create user token")
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: err.Error(),
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth_token",
+		Value:    token.ID.String(),
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+		// Secure: true, // TODO: this needs to be set TRUE for prod
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(dto.Response[dto.MeResponse]{Response: res})
 }
