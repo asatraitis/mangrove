@@ -1,4 +1,5 @@
-import {Response, MeResponse, InitLoginResponse, FinishLoginRequest} from "@dto/types"
+import {Response, MeResponse, InitLoginResponse, FinishLoginRequest, InitRegistrationResponse} from "@dto/types"
+import { RegistrationResponseJSON } from "@simplewebauthn/browser"
 
 interface IApiCLient {
     me(): Promise<Response<MeResponse>>
@@ -47,6 +48,12 @@ export default class ApiClient implements IApiCLient {
     async me() {
         return ApiClient.call<MeResponse>(`${this.url}${this.apiEndpoint}/me`)
     }
+    async initRegistration(registrationCode: string) {
+        return ApiClient.call<InitRegistrationResponse>(`${this.url}${this.apiEndpoint}/register`, {method: "POST", body: JSON.stringify({registrationCode})})
+    }
+    async finishRegistration(userId: string, credential: RegistrationResponseJSON) {
+        return ApiClient.call<unknown>(`${this.url}${this.apiEndpoint}/register/finish`, {method: "POST", body: JSON.stringify({userId, credential})})
+    }
     async initLogin(username: string) {
         return ApiClient.call<InitLoginResponse>(`${this.url}${this.apiEndpoint}/login`, {method: "POST", body: JSON.stringify({username})})
     }
@@ -54,3 +61,5 @@ export default class ApiClient implements IApiCLient {
         return ApiClient.call<MeResponse>(`${this.url}${this.apiEndpoint}/login/finish`, {method: "POST", body: JSON.stringify(finishLogin)})
     }
 }
+
+export const apiClient = new ApiClient("http://localhost:3030")

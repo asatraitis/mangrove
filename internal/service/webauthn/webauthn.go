@@ -176,6 +176,7 @@ func (w *webAuthN) GetSession(key string) *webauthn.SessionData {
 	return w.cache.GetValue(key)
 }
 
+// TODO: implement usernameless login
 func (w *webAuthN) FinishLogin(req *dto.FinishLoginRequest, user *models.User) (*webauthn.Credential, error) {
 	const funcName = "FinishLogin"
 

@@ -57,7 +57,7 @@ tasks:
   ui-main-build:
     cmds:
       - npx tsc
-      - npx vite build web_src/main 
+      - npx vite build web_src/main --emptyOutDir
   ui-main-watch-build:
     cmds:
       - npx vite build web_src/main --watch --emptyOutDir

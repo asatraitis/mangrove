@@ -17,8 +17,8 @@ declare module '@tanstack/react-router' {
 }
 
 export default function App() {
-    const {user} = useAuthCtx()
+    const {user, setUser} = useAuthCtx()
     return (
-      <RouterProvider router={router} context={{auth: user}} />
+      <RouterProvider router={router} context={{user, setUser}} />
     )
 }

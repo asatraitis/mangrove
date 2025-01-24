@@ -1,10 +1,11 @@
 import { createRootRouteWithContext} from '@tanstack/react-router'
 
-import { AuthUser } from '../contexts/auth/auth'
 import Index from '../pages/index'
+import { MeResponse } from '@dto/types'
 
 interface RouterCtx {
-  auth: AuthUser
+  user: MeResponse,
+  setUser: React.Dispatch<React.SetStateAction<MeResponse>>
 }
 
 export const Route = createRootRouteWithContext<RouterCtx>()({
