@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
 	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/bll"
@@ -20,20 +24,29 @@ import (
 
 // TODO: Add graceful shutdown
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
 
 	variables := configs.NewConf(logger).GetEnvironmentVars()
 	logger.Info().Msgf("MangroveEnv: %s", variables.MangroveEnv)
 
+	var wg sync.WaitGroup
+	wg.Add(1)
 	if variables.MangroveEnv == configs.DEV {
-		startDev(ctx, variables, logger)
+		go startDev(ctx, variables, logger, &wg)
 	} else {
 		// TODO: Add prod start
 	}
+
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+	<-signalCh
+	cancel()
+	wg.Wait()
 }
 
-func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerolog.Logger) {
+func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerolog.Logger, wg *sync.WaitGroup) {
+	defer wg.Done()
 	logger = logger.Level(zerolog.DebugLevel).Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	// Run migrations
@@ -83,10 +96,25 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 		Handler: ro,
 	}
 	fmt.Printf("============================================ [REGISTRATION CODE: %s] ============================================\n", initCode)
-	logger.Info().Msgf("Starting http server on %s", httpServer.Addr)
-	if err := httpServer.ListenAndServe(); err != nil {
-		logger.Error().Err(err).Msg("Failed to start http server")
+	go func() {
+		logger.Info().Msgf("Starting http server on %s", httpServer.Addr)
+		if err := httpServer.ListenAndServe(); err != nil {
+			logger.Error().Err(err).Msg("Failed to start http server")
+		}
+	}()
+
+	<-ctx.Done()
+	// Shutdown the server gracefully
+	fmt.Println("Shutting down HTTP server gracefully...")
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelShutdown()
+
+	err = httpServer.Shutdown(shutdownCtx)
+	if err != nil {
+		fmt.Printf("HTTP server shutdown error: %s\n", err)
 	}
+
+	fmt.Println("HTTP server stopped.")
 
 }
 
