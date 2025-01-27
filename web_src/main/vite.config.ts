@@ -14,6 +14,13 @@ export default defineConfig({
   },
   server:{
     port: 3000,
+    proxy: {
+      '/v1': {
+        target: "http://localhost:3030",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   publicDir: "../../public/main",
   build: {

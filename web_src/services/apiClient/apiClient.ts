@@ -62,4 +62,4 @@ export default class ApiClient implements IApiCLient {
     }
 }
 
-export const apiClient = new ApiClient("http://localhost:3030")
+export const apiClient = new ApiClient("")
