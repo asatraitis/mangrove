@@ -57,6 +57,20 @@ func (mr *MockDALMockRecorder) BeginTx(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTx", reflect.TypeOf((*MockDAL)(nil).BeginTx), ctx)
 }
 
+// Client mocks base method.
+func (m *MockDAL) Client(ctx context.Context) dal.ClientsDAL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Client", ctx)
+	ret0, _ := ret[0].(dal.ClientsDAL)
+	return ret0
+}
+
+// Client indicates an expected call of Client.
+func (mr *MockDALMockRecorder) Client(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockDAL)(nil).Client), ctx)
+}
+
 // Config mocks base method.
 func (m *MockDAL) Config(ctx context.Context) dal.ConfigDAL {
 	m.ctrl.T.Helper()

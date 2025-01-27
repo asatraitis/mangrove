@@ -56,6 +56,18 @@ func (m *initial_20241203101104) Up(tx pgx.Tx) error {
 			user_id uuid NOT NULL REFERENCES users(id),
 			expires timestamp NOT NULL
 		);
+		CREATE TABLE IF NOT EXISTS clients (
+			id UUID PRIMARY KEY,
+			user_id uuid NOT NULL REFERENCES users(id),
+			name TEXT NOT NULL,
+			description TEXT,
+			type TEXT NOT NULL,
+			redirect_uri TEXT NOT NULL,
+			public_key bytea NOT NULL,
+			key_algo TEXT NOT NULl,
+			key_expires_at timestamp NOT NULL,
+			status TEXT NOT NULL
+		);
 		CREATE TABLE IF NOT EXISTS config (
 			key TEXT PRIMARY KEY,
 			label TEXT NOT NULL,
@@ -74,6 +86,7 @@ func (m *initial_20241203101104) Up(tx pgx.Tx) error {
 func (m *initial_20241203101104) Down(tx pgx.Tx) error {
 	_, err := tx.Exec(context.Background(), `
         -- SQL migration revert
+		DROP TABLE IF EXISTS clients
 		DROP TABLE IF EXISTS user_tokens;
 		DROP TABLE IF EXISTS user_credentials;
 		DROP TABLE IF EXISTS users;

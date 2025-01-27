@@ -95,26 +95,28 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 		Addr:    ":3030", // TODO: Add port config
 		Handler: ro,
 	}
-	fmt.Printf("============================================ [REGISTRATION CODE: %s] ============================================\n", initCode)
+	if initCode != "" {
+		fmt.Printf("============================================ [REGISTRATION CODE: %s] ============================================\n", initCode)
+	}
 	go func() {
 		logger.Info().Msgf("Starting http server on %s", httpServer.Addr)
-		if err := httpServer.ListenAndServe(); err != nil {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error().Err(err).Msg("Failed to start http server")
 		}
 	}()
 
 	<-ctx.Done()
 	// Shutdown the server gracefully
-	fmt.Println("Shutting down HTTP server gracefully...")
+	logger.Info().Msgf("Shutting down server on %s", httpServer.Addr)
 	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelShutdown()
 
 	err = httpServer.Shutdown(shutdownCtx)
 	if err != nil {
-		fmt.Printf("HTTP server shutdown error: %s\n", err)
+		logger.Err(err).Msg("HTTP server shutdown error")
 	}
 
-	fmt.Println("HTTP server stopped.")
+	logger.Info().Msg("HTTP server stopped.")
 
 }
 
