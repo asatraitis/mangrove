@@ -41,6 +41,20 @@ func (m *MockBLL) EXPECT() *MockBLLMockRecorder {
 	return m.recorder
 }
 
+// Client mocks base method.
+func (m *MockBLL) Client(arg0 context.Context) bll.ClientBLL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Client", arg0)
+	ret0, _ := ret[0].(bll.ClientBLL)
+	return ret0
+}
+
+// Client indicates an expected call of Client.
+func (mr *MockBLLMockRecorder) Client(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockBLL)(nil).Client), arg0)
+}
+
 // Config mocks base method.
 func (m *MockBLL) Config(arg0 context.Context) bll.ConfigBLL {
 	m.ctrl.T.Helper()

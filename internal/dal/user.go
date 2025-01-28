@@ -39,17 +39,20 @@ func (ud *userDAL) Create(tx pgx.Tx, user *models.User) error {
 		ud.logger.Error().Str("func", funcName).Msg("user is nil")
 		return errors.New("failed to insert user; nil user")
 	}
+	args := []interface{}{
+		user.ID,
+		user.Username,
+		user.DisplayName,
+		user.Email,
+		user.Status,
+		user.Role,
+	}
 
 	if tx == nil {
 		_, err := ud.db.Exec(
 			ud.ctx,
 			query,
-			user.ID,
-			user.Username,
-			user.DisplayName,
-			user.Email,
-			user.Status,
-			user.Role,
+			args...,
 		)
 		if err != nil {
 			ud.logger.Err(err).Str("func", funcName).Msg("failed to insert user")
@@ -60,12 +63,7 @@ func (ud *userDAL) Create(tx pgx.Tx, user *models.User) error {
 	_, err := tx.Exec(
 		ud.ctx,
 		query,
-		user.ID,
-		user.Username,
-		user.DisplayName,
-		user.Email,
-		user.Status,
-		user.Role,
+		args...,
 	)
 	if err != nil {
 		ud.logger.Err(err).Str("func", funcName).Msg("failed to insert user")

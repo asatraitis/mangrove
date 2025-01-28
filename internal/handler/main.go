@@ -60,7 +60,7 @@ func (h *mainHandler) me(w http.ResponseWriter, r *http.Request) {
 	res := &dto.MeResponse{}
 
 	// get user UUID
-	userID, err := GetUserIdFromCtx(ctx)
+	userID, err := utils.GetUserIdFromCtx(ctx)
 	if err != nil {
 		h.logger.Err(err).Msg("failed to get userID from context")
 		sendErrResponse[any](w, &dto.ResponseError{

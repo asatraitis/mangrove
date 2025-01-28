@@ -39,6 +39,7 @@ func NewUserBLL(ctx context.Context, baseBLL *BaseBLL) UserBLL {
 	}
 	uBll.logger = baseBLL.logger.With().Str("subcomponent", "UserBLL").Logger()
 	return uBll
+
 }
 
 func (u *userBLL) CreateUserSession() (*protocol.CredentialCreation, error) {

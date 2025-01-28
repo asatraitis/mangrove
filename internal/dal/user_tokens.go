@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+	"errors"
 
 	"github.com/asatraitis/mangrove/internal/dal/models"
 	"github.com/google/uuid"
@@ -32,13 +33,21 @@ func (ut *userTokensDAL) Create(tx pgx.Tx, token *models.UserToken) error {
 	const funcName string = "Create"
 	const query = "INSERT INTO user_tokens VALUES ($1, $2, $3);"
 
+	if token == nil {
+		ut.logger.Error().Str("func", funcName).Msg("nil user token")
+		return errors.New("failed to create user token; nil token")
+	}
+	args := []interface{}{
+		token.ID,
+		token.UserID,
+		token.Expires,
+	}
+
 	if tx == nil {
 		_, err := ut.db.Exec(
 			ut.ctx,
 			query,
-			token.ID,
-			token.UserID,
-			token.Expires,
+			args...,
 		)
 		if err != nil {
 			ut.logger.Err(err).Str("func", funcName).Msg("failed to insert user token")
@@ -49,9 +58,7 @@ func (ut *userTokensDAL) Create(tx pgx.Tx, token *models.UserToken) error {
 	_, err := tx.Exec(
 		ut.ctx,
 		query,
-		token.ID,
-		token.UserID,
-		token.Expires,
+		args...,
 	)
 	if err != nil {
 		ut.logger.Err(err).Str("func", funcName).Msg("failed to insert user token")

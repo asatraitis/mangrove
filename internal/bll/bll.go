@@ -14,6 +14,7 @@ import (
 type BLL interface {
 	Config(context.Context) ConfigBLL
 	User(context.Context) UserBLL
+	Client(context.Context) ClientBLL
 }
 type BaseBLL struct {
 	logger    zerolog.Logger
@@ -42,7 +43,9 @@ func NewBLL(logger zerolog.Logger, vars *configs.EnvVariables, appConfig config.
 func (b *bll) Config(ctx context.Context) ConfigBLL {
 	return NewConfigBLL(ctx, b.BaseBLL)
 }
-
 func (b *bll) User(ctx context.Context) UserBLL {
 	return NewUserBLL(ctx, b.BaseBLL)
+}
+func (b *bll) Client(ctx context.Context) ClientBLL {
+	return NewClientBLL(ctx, b.BaseBLL)
 }

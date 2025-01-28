@@ -39,38 +39,7 @@ func (uc *userCredentialsDAL) Create(tx pgx.Tx, credential *models.UserCredentia
 		return errors.New("failed to create user credential; nil credential")
 	}
 
-	if tx == nil {
-		_, err := uc.db.Exec(
-			uc.ctx,
-			query,
-			credential.ID,
-			credential.UserID,
-			credential.PublicKey,
-			credential.AttestationType,
-			credential.Transport,
-			credential.FlagUserPresent,
-			credential.FlagVerified,
-			credential.FlagBackupEligible,
-			credential.FlagBackupState,
-			credential.AuthAaguid,
-			credential.AuthSignCount,
-			credential.AuthCloneWarning,
-			credential.AuthAttachment,
-			credential.AttestationClientDataJson,
-			credential.AttestationDataHash,
-			credential.AttestationAuthenticatorData,
-			credential.AttestationPublicKeyAlgorithm,
-			credential.AttestationObject,
-		)
-		if err != nil {
-			uc.logger.Err(err).Str("func", funcName).Msg("failed to insert user credential")
-		}
-		return err
-	}
-
-	_, err := tx.Exec(
-		uc.ctx,
-		query,
+	args := []interface{}{
 		credential.ID,
 		credential.UserID,
 		credential.PublicKey,
@@ -89,6 +58,24 @@ func (uc *userCredentialsDAL) Create(tx pgx.Tx, credential *models.UserCredentia
 		credential.AttestationAuthenticatorData,
 		credential.AttestationPublicKeyAlgorithm,
 		credential.AttestationObject,
+	}
+
+	if tx == nil {
+		_, err := uc.db.Exec(
+			uc.ctx,
+			query,
+			args...,
+		)
+		if err != nil {
+			uc.logger.Err(err).Str("func", funcName).Msg("failed to insert user credential")
+		}
+		return err
+	}
+
+	_, err := tx.Exec(
+		uc.ctx,
+		query,
+		args...,
 	)
 	if err != nil {
 		uc.logger.Err(err).Str("func", funcName).Msg("failed to insert user credential")
