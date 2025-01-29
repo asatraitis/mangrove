@@ -131,3 +131,97 @@ func (suite *ClientBllTestSuite) TestGetUserClients_FAIL_TypeconvErr() {
 	suite.Error(err)
 	suite.ErrorContains(err, "client is nil")
 }
+
+func (suite *ClientBllTestSuite) TestCreate_OK() {
+	suite.ctx = context.WithValue(suite.ctx, types.REQ_CTX_KEY_USER_ID, "0bdd05ec-8008-4869-b6ec-6d812ce95507")
+	clientReq := dto.CreateClientRequest{
+		Name:        "test-name",
+		Description: "test-desc",
+		Type:        "test-type",
+		RedirectURI: "http://test.com",
+		Status:      dto.UserClientStatus("active"),
+		PublicKey:   []byte("pub_key"),
+		KeyAlgo:     dto.UserClientKeyAlgo("EdDSA"),
+	}
+	suite.dal.EXPECT().Client(gomock.Any()).Times(1).Return(suite.clientsDal)
+	suite.clientsDal.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+
+	clientRes, err := suite.bll.Client(suite.ctx).Create(clientReq)
+	suite.NoError(err)
+	suite.NotNil(clientRes)
+}
+
+func (suite *ClientBllTestSuite) TestCreate_FAIL_BadPayload() {
+	clientRes, err := suite.bll.Client(suite.ctx).Create(dto.CreateClientRequest{})
+	suite.Error(err)
+	suite.ErrorContains(err, "missing")
+	suite.Nil(clientRes)
+}
+
+func (suite *ClientBllTestSuite) TestCreate_FAIL_BadUserIDinCtx() {
+	suite.ctx = context.WithValue(suite.ctx, types.REQ_CTX_KEY_USER_ID, uint32(1))
+	clientReq := dto.CreateClientRequest{
+		Name:        "test-name",
+		Description: "test-desc",
+		Type:        "test-type",
+		RedirectURI: "http://test.com",
+		Status:      dto.UserClientStatus("active"),
+		PublicKey:   []byte("pub_key"),
+		KeyAlgo:     dto.UserClientKeyAlgo("EdDSA"),
+	}
+
+	clientRes, err := suite.bll.Client(suite.ctx).Create(clientReq)
+	suite.Error(err)
+	suite.ErrorContains(err, "failed type assertion")
+	suite.Nil(clientRes)
+}
+
+func (suite *ClientBllTestSuite) TestCreate_FAIL_DalErr() {
+	suite.ctx = context.WithValue(suite.ctx, types.REQ_CTX_KEY_USER_ID, "0bdd05ec-8008-4869-b6ec-6d812ce95507")
+	clientReq := dto.CreateClientRequest{
+		Name:        "test-name",
+		Description: "test-desc",
+		Type:        "test-type",
+		RedirectURI: "http://test.com",
+		Status:      dto.UserClientStatus("active"),
+		PublicKey:   []byte("pub_key"),
+		KeyAlgo:     dto.UserClientKeyAlgo("EdDSA"),
+	}
+	suite.dal.EXPECT().Client(gomock.Any()).Times(1).Return(suite.clientsDal)
+	suite.clientsDal.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(errors.New("test failed"))
+
+	clientRes, err := suite.bll.Client(suite.ctx).Create(clientReq)
+	suite.Error(err)
+	suite.ErrorContains(err, "failed")
+	suite.Nil(clientRes)
+}
+
+func (suite *ClientBllTestSuite) TestValidateCreateReq() {
+	clientReq := dto.CreateClientRequest{
+		Name:        "test-name",
+		Type:        "test-type",
+		RedirectURI: "http://test.com",
+		Status:      dto.UserClientStatus("active"),
+		PublicKey:   []byte("pub_key"),
+		KeyAlgo:     dto.UserClientKeyAlgo("EdDSA"),
+	}
+
+	err := validateCreateReq(clientReq)
+	suite.NoError(err)
+
+	err = validateCreateReq(dto.CreateClientRequest{})
+	suite.Error(err)
+	suite.ErrorContains(err, "missing name")
+	suite.ErrorContains(err, "missing type")
+	suite.ErrorContains(err, "missing redirectUri")
+	suite.ErrorContains(err, "missing or wrong status")
+	suite.ErrorContains(err, "missing publicKey")
+	suite.ErrorContains(err, "missing or wrong keyAlgo")
+
+	clientReq.Name = " "
+	clientReq.Status = dto.UserClientStatus(" ")
+	err = validateCreateReq(clientReq)
+	suite.Error(err)
+	suite.ErrorContains(err, "missing name")
+	suite.ErrorContains(err, "missing or wrong status")
+}

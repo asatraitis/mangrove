@@ -7,6 +7,7 @@ import (
 
 	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/bll"
+	"github.com/asatraitis/mangrove/internal/dal/models"
 	"github.com/asatraitis/mangrove/internal/dto"
 	"github.com/asatraitis/mangrove/internal/handler/types"
 	"github.com/asatraitis/mangrove/internal/utils"
@@ -107,6 +108,27 @@ func (m *middleware) CsrfValidationMiddleware(next HandlerFuncType) HandlerFuncT
 				Message: "failed to validate token",
 				Code:    "ERROR_CODE_TBD",
 			}, http.StatusBadRequest)
+			return
+		}
+
+		next(w, r)
+	}
+}
+func (m *middleware) UserStatusValidation(next HandlerFuncType) HandlerFuncType {
+	return func(w http.ResponseWriter, r *http.Request) {
+		status, err := utils.GetUserStatusFromCtx(r.Context())
+		if err != nil {
+			sendErrResponse[any](w, &dto.ResponseError{
+				Message: "failed to validate user status",
+				Code:    "ERROR_CODE_TBD",
+			}, http.StatusBadRequest)
+			return
+		}
+		if models.UserStatus(status) != models.USER_STATUS_ACTIVE {
+			sendErrResponse[any](w, &dto.ResponseError{
+				Message: "user is not active",
+				Code:    "ERROR_CODE_TBD",
+			}, http.StatusForbidden)
 			return
 		}
 
