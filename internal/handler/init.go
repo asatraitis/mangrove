@@ -36,7 +36,11 @@ func NewInitHandler(baseHandler *BaseHandler, initMux *http.ServeMux) InitHandle
 func (ih *initHandler) register() {
 	ih.initMux.Handle("GET /", http.FileServer(http.Dir("./dist/init")))
 	ih.initMux.HandleFunc("POST /v1/register", ih.initRegistration)
-	ih.initMux.HandleFunc("POST /v1/register/finish", ih.middleware.CsrfValidationMiddleware(ih.finishRegistration))
+	ih.initMux.HandleFunc("POST /v1/register/finish", HandleWithMiddleware(ih.finishRegistration,
+		[]MiddlewareFunc{
+			ih.middleware.CsrfValidationMiddleware,
+		},
+	))
 }
 
 // TODO: remove

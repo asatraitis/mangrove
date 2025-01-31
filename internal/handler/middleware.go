@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/asatraitis/mangrove/configs"
@@ -15,10 +16,11 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type MiddlewareFunc func(HandlerFuncType) HandlerFuncType
 type Middleware interface {
 	CsrfValidationMiddleware(HandlerFuncType) HandlerFuncType
 	AuthValidationMiddleware(HandlerFuncType) HandlerFuncType
-	UserStatusValidation(next HandlerFuncType) HandlerFuncType
+	UserStatusValidation(HandlerFuncType) HandlerFuncType
 }
 type middleware struct {
 	vars   *configs.EnvVariables
@@ -32,6 +34,14 @@ func NewMiddleware(vars *configs.EnvVariables, bll bll.BLL, logger zerolog.Logge
 		bll:    bll,
 		logger: logger,
 	}
+}
+func HandleWithMiddleware(handler HandlerFuncType, middleware []MiddlewareFunc) HandlerFuncType {
+	var final HandlerFuncType = handler
+	for _, mw := range slices.Backward(middleware) {
+		final = mw(final)
+	}
+
+	return final
 }
 func (m *middleware) AuthValidationMiddleware(next HandlerFuncType) HandlerFuncType {
 	return func(w http.ResponseWriter, r *http.Request) {

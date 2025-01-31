@@ -31,13 +31,28 @@ func NewMainHandler(baseHandler *BaseHandler, mux *http.ServeMux) MainHandler {
 }
 
 func (h *mainHandler) register() {
-	h.mux.HandleFunc("GET /v1/me", h.middleware.AuthValidationMiddleware(h.middleware.CsrfValidationMiddleware(h.me)))
+	h.mux.HandleFunc("GET /v1/me", HandleWithMiddleware(h.me,
+		[]MiddlewareFunc{
+			h.middleware.CsrfValidationMiddleware,
+			h.middleware.AuthValidationMiddleware,
+		},
+	))
 	h.mux.HandleFunc("POST /v1/login", h.initLogin)
-	h.mux.HandleFunc("POST /v1/login/finish", h.middleware.CsrfValidationMiddleware(h.finishLogin))
+	h.mux.HandleFunc("POST /v1/login/finish", HandleWithMiddleware(h.finishLogin,
+		[]MiddlewareFunc{
+			h.middleware.CsrfValidationMiddleware,
+		},
+	))
 	h.mux.Handle("GET /", http.FileServer(http.Dir("./dist/main")))
-	// TODO: implement better middleware system
-	h.mux.HandleFunc("GET /v1/clients", h.middleware.CsrfValidationMiddleware(h.middleware.AuthValidationMiddleware(h.middleware.UserStatusValidation(h.clients))))
-	// h.middleware.UserStatusValidation(h.middleware.AuthValidationMiddleware(h.middleware.CsrfValidationMiddleware(h.clients)))
+	h.mux.HandleFunc("GET /v1/clients", HandleWithMiddleware(
+		h.clients,
+		[]MiddlewareFunc{
+			h.middleware.CsrfValidationMiddleware,
+			h.middleware.AuthValidationMiddleware,
+			h.middleware.UserStatusValidation,
+		},
+	))
+
 }
 func (h *mainHandler) clientRouting() http.Handler {
 	const fsPath = "./dist/main"
