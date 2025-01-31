@@ -58,7 +58,7 @@ func NewWebAuthN(logger zerolog.Logger) (WebAuthN, error) {
 	waConfig := &webauthn.Config{
 		RPDisplayName: "Mangrove",
 		RPID:          "localhost",
-		RPOrigins:     []string{"http://localhost:3030"},
+		RPOrigins:     []string{"http://localhost:3030", "http://localhost:3000"},
 		Timeouts: webauthn.TimeoutsConfig{
 			Login: webauthn.TimeoutConfig{
 				Enforce:    true,             // Require the response from the client comes before the end of the timeout.

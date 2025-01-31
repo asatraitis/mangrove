@@ -35,6 +35,9 @@ func (h *mainHandler) register() {
 	h.mux.HandleFunc("POST /v1/login", h.initLogin)
 	h.mux.HandleFunc("POST /v1/login/finish", h.middleware.CsrfValidationMiddleware(h.finishLogin))
 	h.mux.Handle("GET /", http.FileServer(http.Dir("./dist/main")))
+	// TODO: implement better middleware system
+	h.mux.HandleFunc("GET /v1/clients", h.middleware.CsrfValidationMiddleware(h.middleware.AuthValidationMiddleware(h.middleware.UserStatusValidation(h.clients))))
+	// h.middleware.UserStatusValidation(h.middleware.AuthValidationMiddleware(h.middleware.CsrfValidationMiddleware(h.clients)))
 }
 func (h *mainHandler) clientRouting() http.Handler {
 	const fsPath = "./dist/main"
@@ -200,4 +203,23 @@ func (h *mainHandler) finishLogin(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(dto.Response[dto.MeResponse]{Response: res})
+}
+func (h *mainHandler) clients(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	userClients, err := h.bll.Client(ctx).GetUserClients()
+	if err != nil {
+		h.logger.Err(err).Msg("failed to get userID from context")
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: "failed to get user clients",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(dto.Response[dto.UserClientsResponse]{Response: &userClients})
+
 }

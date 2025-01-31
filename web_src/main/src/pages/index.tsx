@@ -3,7 +3,7 @@ import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { LuFileKey } from "react-icons/lu";
 import { RiDoorLockLine } from "react-icons/ri";
 
-import { AppShell, Burger, Flex } from "@mantine/core";
+import { AppShell, Burger, Flex, Container } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import { useAuthCtx } from "../contexts/auth/useAuthCtx";
@@ -16,7 +16,12 @@ export default function Index() {
 
 
     if (user.status !== 'active') {
-        return <Outlet />
+        return (
+            <div>
+                {'root?'}
+                <Outlet />
+            </div>
+    )
     }
     
     return (
@@ -46,7 +51,11 @@ export default function Index() {
                 <span>Clients</span>
             </Link>
         </AppShell.Navbar>
-        <AppShell.Main><Outlet /></AppShell.Main>
+        <AppShell.Main>
+            <Container size="xl">
+                <Outlet />
+            </Container>
+        </AppShell.Main>
         <TanStackRouterDevtools />
     </AppShell>
 

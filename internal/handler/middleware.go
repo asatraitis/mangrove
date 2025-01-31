@@ -12,25 +12,30 @@ import (
 	"github.com/asatraitis/mangrove/internal/handler/types"
 	"github.com/asatraitis/mangrove/internal/utils"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 )
 
 type Middleware interface {
 	CsrfValidationMiddleware(HandlerFuncType) HandlerFuncType
 	AuthValidationMiddleware(HandlerFuncType) HandlerFuncType
+	UserStatusValidation(next HandlerFuncType) HandlerFuncType
 }
 type middleware struct {
-	vars *configs.EnvVariables
-	bll  bll.BLL
+	vars   *configs.EnvVariables
+	bll    bll.BLL
+	logger zerolog.Logger
 }
 
-func NewMiddleware(vars *configs.EnvVariables, bll bll.BLL) Middleware {
+func NewMiddleware(vars *configs.EnvVariables, bll bll.BLL, logger zerolog.Logger) Middleware {
 	return &middleware{
-		vars: vars,
-		bll:  bll,
+		vars:   vars,
+		bll:    bll,
+		logger: logger,
 	}
 }
 func (m *middleware) AuthValidationMiddleware(next HandlerFuncType) HandlerFuncType {
 	return func(w http.ResponseWriter, r *http.Request) {
+		m.logger.Info().Msg("Validating authentication status")
 		authToken, err := r.Cookie("auth_token")
 		if err != nil {
 			sendErrResponse[any](w, &dto.ResponseError{
@@ -75,6 +80,7 @@ func (m *middleware) AuthValidationMiddleware(next HandlerFuncType) HandlerFuncT
 }
 func (m *middleware) CsrfValidationMiddleware(next HandlerFuncType) HandlerFuncType {
 	return func(w http.ResponseWriter, r *http.Request) {
+		m.logger.Info().Msg("Validating csrf token")
 		csrfToken := r.Header.Get("X-CSRF-Token")
 		csrfCookie, err := r.Cookie("csrf_token")
 		if err != nil || csrfToken == "" {
@@ -116,8 +122,10 @@ func (m *middleware) CsrfValidationMiddleware(next HandlerFuncType) HandlerFuncT
 }
 func (m *middleware) UserStatusValidation(next HandlerFuncType) HandlerFuncType {
 	return func(w http.ResponseWriter, r *http.Request) {
+		m.logger.Info().Msg("Validating user status")
 		status, err := utils.GetUserStatusFromCtx(r.Context())
 		if err != nil {
+			m.logger.Err(err).Str("status", status).Msg("failed to get user status from context")
 			sendErrResponse[any](w, &dto.ResponseError{
 				Message: "failed to validate user status",
 				Code:    "ERROR_CODE_TBD",
@@ -125,6 +133,7 @@ func (m *middleware) UserStatusValidation(next HandlerFuncType) HandlerFuncType 
 			return
 		}
 		if models.UserStatus(status) != models.USER_STATUS_ACTIVE {
+			m.logger.Err(err).Str("status", status).Msg("user status is not active")
 			sendErrResponse[any](w, &dto.ResponseError{
 				Message: "user is not active",
 				Code:    "ERROR_CODE_TBD",

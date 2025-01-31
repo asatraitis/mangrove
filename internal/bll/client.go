@@ -44,7 +44,9 @@ func (b *clientBLL) GetUserClients() (dto.UserClientsResponse, error) {
 		b.logger.Err(err).Str("func", funcName).Msg("failed to retrieve clients from db")
 		return nil, err
 	}
-
+	if clients == nil {
+		return dto.UserClientsResponse{}, nil
+	}
 	userClients, err := typeconv.ConvertClientsToUserClientsResponse(clients)
 	if err != nil {
 		b.logger.Err(err).Str("func", funcName).Msg("failed to typeconv from clients to userclients dto")

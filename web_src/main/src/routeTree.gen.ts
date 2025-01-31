@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as ClientsImport } from './routes/clients'
 import { Route as IndexImport } from './routes/index'
+import { Route as ClientsNewImport } from './routes/clients_.new'
 
 // Create/Update Routes
 
@@ -34,6 +35,12 @@ const IndexRoute = IndexImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+
+const ClientsNewRoute = ClientsNewImport.update({
+  id: '/clients_/new',
+  path: '/clients/new',
+  getParentRoute: () => rootRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -60,6 +67,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
+    '/clients_/new': {
+      id: '/clients_/new'
+      path: '/clients/new'
+      fullPath: '/clients/new'
+      preLoaderRoute: typeof ClientsNewImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -69,12 +83,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clients': typeof ClientsRoute
   '/login': typeof LoginRoute
+  '/clients/new': typeof ClientsNewRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clients': typeof ClientsRoute
   '/login': typeof LoginRoute
+  '/clients/new': typeof ClientsNewRoute
 }
 
 export interface FileRoutesById {
@@ -82,14 +98,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/clients': typeof ClientsRoute
   '/login': typeof LoginRoute
+  '/clients_/new': typeof ClientsNewRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/clients' | '/login'
+  fullPaths: '/' | '/clients' | '/login' | '/clients/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/clients' | '/login'
-  id: '__root__' | '/' | '/clients' | '/login'
+  to: '/' | '/clients' | '/login' | '/clients/new'
+  id: '__root__' | '/' | '/clients' | '/login' | '/clients_/new'
   fileRoutesById: FileRoutesById
 }
 
@@ -97,12 +114,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClientsRoute: typeof ClientsRoute
   LoginRoute: typeof LoginRoute
+  ClientsNewRoute: typeof ClientsNewRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClientsRoute: ClientsRoute,
   LoginRoute: LoginRoute,
+  ClientsNewRoute: ClientsNewRoute,
 }
 
 export const routeTree = rootRoute
@@ -117,7 +136,8 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/clients",
-        "/login"
+        "/login",
+        "/clients_/new"
       ]
     },
     "/": {
@@ -128,6 +148,9 @@ export const routeTree = rootRoute
     },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/clients_/new": {
+      "filePath": "clients_.new.tsx"
     }
   }
 }

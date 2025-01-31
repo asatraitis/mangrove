@@ -1,4 +1,11 @@
-import {Response, MeResponse, InitLoginResponse, FinishLoginRequest, InitRegistrationResponse} from "@dto/types"
+import {
+    Response, 
+    MeResponse, 
+    InitLoginResponse, 
+    FinishLoginRequest, 
+    InitRegistrationResponse,
+    UserClientsResponse
+} from "@dto/types"
 import { RegistrationResponseJSON } from "@simplewebauthn/browser"
 
 interface IApiCLient {
@@ -59,6 +66,9 @@ export default class ApiClient implements IApiCLient {
     }
     async finishLogin(finishLogin: FinishLoginRequest) {
         return ApiClient.call<MeResponse>(`${this.url}${this.apiEndpoint}/login/finish`, {method: "POST", body: JSON.stringify(finishLogin)})
+    }
+    async userClients() {
+        return ApiClient.call<UserClientsResponse>(`${this.url}${this.apiEndpoint}/clients`)
     }
 }
 
