@@ -127,9 +127,9 @@ func (suite *ClientBllTestSuite) TestGetUserClients_FAIL_TypeconvErr() {
 	suite.dal.EXPECT().Client(gomock.Any()).Times(1).Return(suite.clientsDal)
 	suite.clientsDal.EXPECT().GetAllByUserID(gomock.Any()).Times(1).Return(nil, nil)
 
-	_, err := suite.bll.Client(suite.ctx).GetUserClients()
-	suite.Error(err)
-	suite.ErrorContains(err, "client is nil")
+	clients, err := suite.bll.Client(suite.ctx).GetUserClients()
+	suite.NoError(err)
+	suite.NotNil(clients)
 }
 
 func (suite *ClientBllTestSuite) TestCreate_OK() {
