@@ -10,7 +10,6 @@ export default function Clients() {
     if (error) {
         console.error(error.message)
     }
-    console.log({clients, error})
     
 
     if (clients?.length === 0) {
@@ -22,7 +21,7 @@ export default function Clients() {
                     </ThemeIcon>
                     <Text size="xl">No Clients Created</Text>
                     <Text>Created clients will appear below.</Text>
-                        <Link to="/clients/new">
+                        <Link to="/clients/create">
                             <Button mt="md">Create Client</Button>
                         </Link>
                 </Flex>

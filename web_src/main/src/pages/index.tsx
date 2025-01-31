@@ -8,12 +8,11 @@ import { useDisclosure } from "@mantine/hooks";
 
 import { useAuthCtx } from "../contexts/auth/useAuthCtx";
 import classes from "./index.module.css"
+import Breadcrumbs from "../components/Breadcrumbs";
 
 export default function Index() {
     const {user} = useAuthCtx()
     const [opened, {toggle}] = useDisclosure()
-
-
 
     if (user.status !== 'active') {
         return (
@@ -53,6 +52,7 @@ export default function Index() {
         </AppShell.Navbar>
         <AppShell.Main>
             <Container size="xl">
+                <Breadcrumbs/>
                 <Outlet />
             </Container>
         </AppShell.Main>
