@@ -31,7 +31,7 @@ func NewClientsDAL(ctx context.Context, baseDAL *BaseDAL) ClientsDAL {
 
 func (c *clientsDAL) Create(tx pgx.Tx, client *models.Client) error {
 	const funcName = "Create"
-	const query = "INSERT INTO clients VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);"
+	const query = "INSERT INTO clients VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);"
 
 	if client == nil {
 		c.logger.Error().Str("func", funcName).Msg("nil client")
@@ -43,7 +43,6 @@ func (c *clientsDAL) Create(tx pgx.Tx, client *models.Client) error {
 		client.UserID,
 		client.Name,
 		client.Description,
-		client.Type,
 		client.RedirectURI,
 		client.PublicKey,
 		client.KeyAlgo,
@@ -76,7 +75,7 @@ func (c *clientsDAL) Create(tx pgx.Tx, client *models.Client) error {
 
 func (c *clientsDAL) GetAllByUserID(userID uuid.UUID) ([]*models.Client, error) {
 	const funcName = "GetAllByUserID"
-	const query = "SELECT id, user_id, name, description, type, redirect_uri, status FROM clients WHERE user_id=$1"
+	const query = "SELECT id, user_id, name, description, redirect_uri, status FROM clients WHERE user_id=$1"
 
 	var clients []*models.Client
 	err := pgxscan.Select(c.ctx, c.db, &clients, query, userID)

@@ -52,6 +52,15 @@ func (h *mainHandler) register() {
 			h.middleware.UserStatusValidation,
 		},
 	))
+	// TODO: add role validation middleware
+	h.mux.HandleFunc("POST /v1/clients", HandleWithMiddleware(
+		h.createClient,
+		[]MiddlewareFunc{
+			h.middleware.CsrfValidationMiddleware,
+			h.middleware.AuthValidationMiddleware,
+			h.middleware.UserStatusValidation,
+		},
+	))
 
 }
 func (h *mainHandler) clientRouting() http.Handler {
@@ -237,4 +246,33 @@ func (h *mainHandler) clients(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(dto.Response[dto.UserClientsResponse]{Response: &userClients})
 
+}
+func (h *mainHandler) createClient(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req dto.CreateClientRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		h.logger.Err(err).Msg("failed to decode payload")
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: "invalid request body",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.bll.Client(ctx).Create(req)
+	if err != nil {
+		sendErrResponse[any](w, &dto.ResponseError{
+			Message: "failed to create client",
+			Code:    "ERROR_CODE_TBD",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(dto.Response[dto.CreateClientResponse]{Response: res})
 }

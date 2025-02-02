@@ -19,7 +19,6 @@ func ConvertClientsToUserClientsResponse(clients []*models.Client) ([]dto.UserCl
 			UserID:      client.UserID.String(),
 			Name:        client.Name,
 			Description: client.Description,
-			Type:        client.Type,
 			RedirectURI: client.RedirectURI,
 			Status:      dto.UserClientStatus(client.Status),
 		})

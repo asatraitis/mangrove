@@ -64,7 +64,6 @@ func (suite *ClientBllTestSuite) TestGetUserClients_OK() {
 			UserID:       uuid.MustParse("0bdd05ec-8008-4869-b6ec-6d812ce95507"),
 			Name:         "test-client-name-0",
 			Description:  "test-client-description-0",
-			Type:         "app-0",
 			RedirectURI:  "http://localhost:3030",
 			PublicKey:    []byte("test-public-key-0"),
 			KeyExpiresAt: now,
@@ -76,7 +75,6 @@ func (suite *ClientBllTestSuite) TestGetUserClients_OK() {
 			UserID:       uuid.MustParse("0bdd05ec-8008-4869-b6ec-6d812ce95507"),
 			Name:         "test-client-name-1",
 			Description:  "test-client-description-1",
-			Type:         "app-1",
 			RedirectURI:  "http://localhost:3031",
 			PublicKey:    []byte("test-public-key-1"),
 			KeyExpiresAt: now,
@@ -98,8 +96,6 @@ func (suite *ClientBllTestSuite) TestGetUserClients_OK() {
 	suite.Equal("test-client-name-1", userClients[1].Name)
 	suite.Equal("test-client-description-0", userClients[0].Description)
 	suite.Equal("test-client-description-1", userClients[1].Description)
-	suite.Equal("app-0", userClients[0].Type)
-	suite.Equal("app-1", userClients[1].Type)
 	suite.Equal("http://localhost:3030", userClients[0].RedirectURI)
 	suite.Equal("http://localhost:3031", userClients[1].RedirectURI)
 	suite.Equal(dto.UserClientStatus("active"), userClients[0].Status)
@@ -137,7 +133,6 @@ func (suite *ClientBllTestSuite) TestCreate_OK() {
 	clientReq := dto.CreateClientRequest{
 		Name:        "test-name",
 		Description: "test-desc",
-		Type:        "test-type",
 		RedirectURI: "http://test.com",
 		Status:      dto.UserClientStatus("active"),
 		PublicKey:   []byte("pub_key"),
@@ -163,7 +158,6 @@ func (suite *ClientBllTestSuite) TestCreate_FAIL_BadUserIDinCtx() {
 	clientReq := dto.CreateClientRequest{
 		Name:        "test-name",
 		Description: "test-desc",
-		Type:        "test-type",
 		RedirectURI: "http://test.com",
 		Status:      dto.UserClientStatus("active"),
 		PublicKey:   []byte("pub_key"),
@@ -181,7 +175,6 @@ func (suite *ClientBllTestSuite) TestCreate_FAIL_DalErr() {
 	clientReq := dto.CreateClientRequest{
 		Name:        "test-name",
 		Description: "test-desc",
-		Type:        "test-type",
 		RedirectURI: "http://test.com",
 		Status:      dto.UserClientStatus("active"),
 		PublicKey:   []byte("pub_key"),
@@ -199,7 +192,6 @@ func (suite *ClientBllTestSuite) TestCreate_FAIL_DalErr() {
 func (suite *ClientBllTestSuite) TestValidateCreateReq() {
 	clientReq := dto.CreateClientRequest{
 		Name:        "test-name",
-		Type:        "test-type",
 		RedirectURI: "http://test.com",
 		Status:      dto.UserClientStatus("active"),
 		PublicKey:   []byte("pub_key"),
@@ -212,7 +204,6 @@ func (suite *ClientBllTestSuite) TestValidateCreateReq() {
 	err = validateCreateReq(dto.CreateClientRequest{})
 	suite.Error(err)
 	suite.ErrorContains(err, "missing name")
-	suite.ErrorContains(err, "missing type")
 	suite.ErrorContains(err, "missing redirectUri")
 	suite.ErrorContains(err, "missing or wrong status")
 	suite.ErrorContains(err, "missing publicKey")

@@ -13,7 +13,6 @@ type UserClient struct {
 	UserID      string           `json:"userId"`
 	Name        string           `json:"name"`
 	Description string           `json:"description,omitempty"`
-	Type        string           `json:"type"`
 	RedirectURI string           `json:"redirectURI"`
 	Status      UserClientStatus `json:"status"`
 }

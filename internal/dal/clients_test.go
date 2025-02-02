@@ -74,7 +74,6 @@ func (suite *ClientsDALTestSuite) TestCreate_OK() {
 		UserID:       suite.userID,
 		Name:         "test-client-name",
 		Description:  "test-client-description",
-		Type:         "app",
 		RedirectURI:  "http://localhost:3030",
 		PublicKey:    []byte("test-public-key"),
 		KeyExpiresAt: expiresAt,
@@ -112,7 +111,6 @@ func (suite *ClientsDALTestSuite) TestGetAllByUserID_OK() {
 		UserID:       suite.userID,
 		Name:         "test-client-name",
 		Description:  "test-client-description",
-		Type:         "app",
 		RedirectURI:  "http://localhost:3030",
 		PublicKey:    []byte("test-public-key"),
 		KeyExpiresAt: expiresAt,
@@ -140,7 +138,6 @@ func (suite *ClientsDALTestSuite) TestGetAllByUserID_OK() {
 	suite.Equal(suite.userID, createdClient.UserID)
 	suite.Equal("test-client-name", createdClient.Name)
 	suite.Equal("test-client-description", createdClient.Description)
-	suite.Equal("app", createdClient.Type)
 	suite.Equal("http://localhost:3030", createdClient.RedirectURI)
 	suite.Equal(models.ClientStatus("active"), createdClient.Status)
 }

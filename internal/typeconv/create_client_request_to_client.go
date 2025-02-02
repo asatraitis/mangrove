@@ -15,7 +15,6 @@ func ConvertCreateClientRequestToClient(createUserReq *dto.CreateClientRequest) 
 	return &models.Client{
 		Name:        createUserReq.Name,
 		Description: createUserReq.Description,
-		Type:        createUserReq.Type,
 		RedirectURI: createUserReq.RedirectURI,
 		Status:      models.ClientStatus(createUserReq.Status),
 		PublicKey:   createUserReq.PublicKey,

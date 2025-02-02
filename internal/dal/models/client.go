@@ -25,7 +25,6 @@ type Client struct {
 	UserID       uuid.UUID     `json:"userId"`
 	Name         string        `json:"name"`
 	Description  string        `json:"description,omitempty"`
-	Type         string        `json:"type"`
 	RedirectURI  string        `json:"redirectURI"`
 	PublicKey    []byte        `json:"publicKey"`
 	KeyExpiresAt time.Time     `json:"keyExpiresAt"`

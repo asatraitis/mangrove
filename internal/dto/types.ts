@@ -12,7 +12,6 @@ export interface UserClient {
   userId: string;
   name: string;
   description?: string;
-  type: string;
   redirectURI: string;
   status: UserClientStatus;
 }
@@ -29,7 +28,6 @@ export const CLIENT_KEY_ALGO_EDDSA: UserClientKeyAlgo = "EdDSA";
 export interface CreateClientRequest {
   name: string;
   description?: string;
-  type: string;
   redirectURI: string;
   status: UserClientStatus;
   publicKey: string;

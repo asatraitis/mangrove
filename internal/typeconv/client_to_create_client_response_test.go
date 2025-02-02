@@ -19,7 +19,6 @@ func TestConvertClientToCreateClientResponse_OK(t *testing.T) {
 		UserID:       uuid.MustParse(userID),
 		Name:         "test-client-name",
 		Description:  "test-client-description",
-		Type:         "app",
 		RedirectURI:  "http://localhost:3030",
 		PublicKey:    []byte("test-public-key"),
 		KeyExpiresAt: expires,
@@ -36,7 +35,6 @@ func TestConvertClientToCreateClientResponse_OK(t *testing.T) {
 	assert.Equal(t, "00000000-1111-2222-3333-000000000000", createdClient.UserID)
 	assert.Equal(t, "test-client-name", createdClient.Name)
 	assert.Equal(t, "test-client-description", createdClient.Description)
-	assert.Equal(t, "app", createdClient.Type)
 	assert.Equal(t, "http://localhost:3030", createdClient.RedirectURI)
 	assert.Equal(t, dto.UserClientStatus("active"), createdClient.Status)
 }

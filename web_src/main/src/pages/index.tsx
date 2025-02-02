@@ -17,7 +17,6 @@ export default function Index() {
     if (user.status !== 'active') {
         return (
             <div>
-                {'root?'}
                 <Outlet />
             </div>
     )

@@ -18,7 +18,6 @@ func TestConvertClientsToUserClientsResponse_OK(t *testing.T) {
 			UserID:       uuid.MustParse("0bdd05ec-8008-4869-b6ec-6d812ce95507"),
 			Name:         "test-client-name-0",
 			Description:  "test-client-description-0",
-			Type:         "app-0",
 			RedirectURI:  "http://localhost:3030",
 			PublicKey:    []byte("test-public-key-0"),
 			KeyExpiresAt: now,
@@ -30,7 +29,6 @@ func TestConvertClientsToUserClientsResponse_OK(t *testing.T) {
 			UserID:       uuid.MustParse("0bdd05ec-8008-4869-b6ec-6d812ce95507"),
 			Name:         "test-client-name-1",
 			Description:  "test-client-description-1",
-			Type:         "app-1",
 			RedirectURI:  "http://localhost:3031",
 			PublicKey:    []byte("test-public-key-1"),
 			KeyExpiresAt: now,
@@ -51,8 +49,6 @@ func TestConvertClientsToUserClientsResponse_OK(t *testing.T) {
 	assert.Equal(t, "test-client-name-1", userClients[1].Name)
 	assert.Equal(t, "test-client-description-0", userClients[0].Description)
 	assert.Equal(t, "test-client-description-1", userClients[1].Description)
-	assert.Equal(t, "app-0", userClients[0].Type)
-	assert.Equal(t, "app-1", userClients[1].Type)
 	assert.Equal(t, "http://localhost:3030", userClients[0].RedirectURI)
 	assert.Equal(t, "http://localhost:3031", userClients[1].RedirectURI)
 	assert.Equal(t, dto.UserClientStatus("active"), userClients[0].Status)

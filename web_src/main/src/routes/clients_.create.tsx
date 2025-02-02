@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import CreateClient from '../pages/createClient'
 
 export const Route = createFileRoute('/clients_/create')({
   beforeLoad: ({ context, location }) => {
@@ -11,9 +12,5 @@ export const Route = createFileRoute('/clients_/create')({
       })
     }
   },
-  component: RouteComponent,
+  component: CreateClient,
 })
-
-function RouteComponent() {
-  return <div>Hello "/clients/new"!</div>
-}

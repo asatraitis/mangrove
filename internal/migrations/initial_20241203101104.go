@@ -61,7 +61,6 @@ func (m *initial_20241203101104) Up(tx pgx.Tx) error {
 			user_id uuid NOT NULL REFERENCES users(id),
 			name TEXT NOT NULL,
 			description TEXT,
-			type TEXT NOT NULL,
 			redirect_uri TEXT NOT NULL,
 			public_key bytea NOT NULL,
 			key_algo TEXT NOT NULl,

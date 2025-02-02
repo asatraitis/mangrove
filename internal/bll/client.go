@@ -107,9 +107,6 @@ func validateCreateReq(req dto.CreateClientRequest) error {
 	if strings.TrimSpace(req.Name) == "" {
 		err = errors.Join(err, errors.New("missing name"))
 	}
-	if strings.TrimSpace(req.Type) == "" {
-		err = errors.Join(err, errors.New("missing type"))
-	}
 	if strings.TrimSpace(req.RedirectURI) == "" {
 		err = errors.Join(err, errors.New("missing redirectUri"))
 	}

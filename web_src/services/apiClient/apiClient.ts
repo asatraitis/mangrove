@@ -4,7 +4,9 @@ import {
     InitLoginResponse, 
     FinishLoginRequest, 
     InitRegistrationResponse,
-    UserClientsResponse
+    UserClientsResponse,
+    CreateClientResponse,
+    CreateClientRequest
 } from "@dto/types"
 import { RegistrationResponseJSON } from "@simplewebauthn/browser"
 
@@ -69,6 +71,9 @@ export default class ApiClient implements IApiCLient {
     }
     async userClients() {
         return ApiClient.call<UserClientsResponse>(`${this.url}${this.apiEndpoint}/clients`)
+    }
+    async createClient(client: CreateClientRequest) {
+        return ApiClient.call<CreateClientResponse>(`${this.url}${this.apiEndpoint}/clients`, {method: "POST", body: JSON.stringify(client)})
     }
 }
 

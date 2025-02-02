@@ -7,11 +7,13 @@ const clientApi = getRouteApi("/clients")
 export default function Clients() {
     const {response: clients, error} = clientApi.useLoaderData()
 
+
     if (error) {
         console.error(error.message)
     }
     
 
+    // TODO: create EmptyState component?
     if (clients?.length === 0) {
         return (
             <Card radius="md" p='xl' withBorder>
@@ -30,31 +32,38 @@ export default function Clients() {
     }
 
     return (
-        <Box>
-            <Table withTableBorder highlightOnHover>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Name</Table.Th>
-                        <Table.Th>Description</Table.Th>
-                        <Table.Th>Type</Table.Th>
-                        <Table.Th>Redirect URI</Table.Th>
-                        <Table.Th>Status</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {
-                        clients?.map(c => (
-                            <Table.Tr key={c.id}>
-                                <Table.Td>{c.name}</Table.Td>
-                                <Table.Td>{c.description}</Table.Td>
-                                <Table.Td>{c.type}</Table.Td>
-                                <Table.Td>{c.redirectURI}</Table.Td>
-                                <Table.Td>{c.status}</Table.Td>
-                            </Table.Tr>
-                        ))
-                    }
-                </Table.Tbody>
-            </Table>
-        </Box>
+        <Card radius="md" withBorder>
+            <Flex justify="flex-end">
+                <Link to="/clients/create">
+                    <Button mt="md">Create Client</Button>
+                </Link>
+            </Flex>
+            <Box mt="md">
+                <Table withTableBorder highlightOnHover>
+                    <Table.Thead>
+                        <Table.Tr>
+                            <Table.Th>ID</Table.Th>
+                            <Table.Th>Name</Table.Th>
+                            <Table.Th>Description</Table.Th>
+                            <Table.Th>Redirect URI</Table.Th>
+                            <Table.Th>Status</Table.Th>
+                        </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                        {
+                            clients?.map(c => (
+                                <Table.Tr key={c.id}>
+                                    <Table.Td><Text truncate="end">{c.id}</Text></Table.Td>
+                                    <Table.Td>{c.name}</Table.Td>
+                                    <Table.Td>{c.description}</Table.Td>
+                                    <Table.Td>{c.redirectURI}</Table.Td>
+                                    <Table.Td>{c.status}</Table.Td>
+                                </Table.Tr>
+                            ))
+                        }
+                    </Table.Tbody>
+                </Table>
+            </Box>
+        </Card>
     )
 }

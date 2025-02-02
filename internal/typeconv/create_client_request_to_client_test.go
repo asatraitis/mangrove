@@ -12,7 +12,6 @@ func TestConvertCreateClientRequestToClient_OK(t *testing.T) {
 	clientReq := dto.CreateClientRequest{
 		Name:        "test-name",
 		Description: "test-desc",
-		Type:        "test-type",
 		RedirectURI: "http://test.com",
 		Status:      dto.UserClientStatus("active"),
 		PublicKey:   []byte("pub_key"),
@@ -24,7 +23,6 @@ func TestConvertCreateClientRequestToClient_OK(t *testing.T) {
 
 	assert.Equal(t, clientReq.Name, client.Name)
 	assert.Equal(t, clientReq.Description, client.Description)
-	assert.Equal(t, clientReq.Type, client.Type)
 	assert.Equal(t, clientReq.RedirectURI, client.RedirectURI)
 	assert.Equal(t, models.ClientStatus(clientReq.Status), client.Status)
 	assert.Equal(t, clientReq.PublicKey, client.PublicKey)
