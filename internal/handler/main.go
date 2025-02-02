@@ -50,15 +50,17 @@ func (h *mainHandler) register() {
 			h.middleware.CsrfValidationMiddleware,
 			h.middleware.AuthValidationMiddleware,
 			h.middleware.UserStatusValidation,
+			h.middleware.UserRoleSuperadmin,
 		},
 	))
-	// TODO: add role validation middleware
+
 	h.mux.HandleFunc("POST /v1/clients", HandleWithMiddleware(
 		h.createClient,
 		[]MiddlewareFunc{
 			h.middleware.CsrfValidationMiddleware,
 			h.middleware.AuthValidationMiddleware,
 			h.middleware.UserStatusValidation,
+			h.middleware.UserRoleSuperadmin,
 		},
 	))
 

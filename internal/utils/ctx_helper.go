@@ -29,6 +29,14 @@ func GetUserStatusFromCtx(ctx context.Context) (models.UserStatus, error) {
 	if !ok {
 		return "", errors.New("failed type assertion - UserStatus")
 	}
+	return s, nil
+}
 
+func GetUserRoleFromCtx(ctx context.Context) (models.UserRole, error) {
+	value := ctx.Value(types.REQ_CTX_KEY_USER_ROLE)
+	s, ok := value.(models.UserRole)
+	if !ok {
+		return "", errors.New("failed type assertion - UserRole")
+	}
 	return s, nil
 }

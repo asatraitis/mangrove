@@ -2,7 +2,7 @@ package models
 
 import "github.com/google/uuid"
 
-type UserStatus = string
+type UserStatus string
 
 const (
 	USER_STATUS_ACTIVE    UserStatus = "active"
