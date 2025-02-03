@@ -18,6 +18,7 @@ import (
 	"github.com/asatraitis/mangrove/internal/service/config"
 	"github.com/asatraitis/mangrove/internal/service/router"
 	"github.com/asatraitis/mangrove/internal/service/webauthn"
+	wa "github.com/go-webauthn/webauthn/webauthn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 )
@@ -67,7 +68,23 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 	defer dbpool.Close()
 
 	// init webauthn
-	wauthn, err := webauthn.NewWebAuthN(logger)
+	wauthn, err := webauthn.NewWebAuthN(&wa.Config{
+		RPDisplayName: variables.MangroveWebauthnRPDisplayName,
+		RPID:          variables.MangroveWebauthnRPID,
+		RPOrigins:     variables.MangroveWebauthnRPOrigins,
+		Timeouts: wa.TimeoutsConfig{
+			Login: wa.TimeoutConfig{
+				Enforce:    true,             // Require the response from the client comes before the end of the timeout.
+				Timeout:    time.Second * 60, // Standard timeout for login sessions.
+				TimeoutUVD: time.Second * 60, // Timeout for login sessions which have user verification set to discouraged.
+			},
+			Registration: wa.TimeoutConfig{
+				Enforce:    true,             // Require the response from the client comes before the end of the timeout.
+				Timeout:    time.Second * 60, // Standard timeout for registration sessions.
+				TimeoutUVD: time.Second * 60, // Timeout for login sessions which have user verification set to discouraged.
+			},
+		},
+	}, logger)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("could not init webAuthn")
 		return
@@ -91,7 +108,7 @@ func startDev(ctx context.Context, variables *configs.EnvVariables, logger zerol
 	)
 
 	httpServer := &http.Server{
-		Addr:    ":3030", // TODO: Add port config
+		Addr:    fmt.Sprintf("%s:%s", variables.MangroveHost, variables.MangrovePort),
 		Handler: ro,
 	}
 	if initCode != "" {

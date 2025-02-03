@@ -2,6 +2,7 @@ package configs
 
 import (
 	"os"
+	"strings"
 
 	"github.com/rs/zerolog"
 )
@@ -12,6 +13,17 @@ const (
 	DEV  MangroveEnvType = "dev"
 	PROD MangroveEnvType = "prod"
 )
+
+type HttpConf struct {
+	MangroveHost string
+	MangrovePort string
+}
+
+type WebauthnConf struct {
+	MangroveWebauthnRPDisplayName string
+	MangroveWebauthnRPID          string
+	MangroveWebauthnRPOrigins     []string
+}
 
 type EnvVariables struct {
 	// MangroveEnv is the environment variable that specifies the environment in which the application is running
@@ -29,6 +41,10 @@ type EnvVariables struct {
 	MangrovePostgresDBName string
 	// MangroveSal is salt used for hashing emails and init codes
 	MangroveSalt string
+	// http conf
+	HttpConf
+
+	WebauthnConf
 }
 
 type Conf interface {
@@ -54,6 +70,15 @@ func (c *conf) GetEnvironmentVars() *EnvVariables {
 		MangrovePostgresPassword: c.getEnvByName("MANGROVE_POSTGRES_PASSWORD"),
 		MangrovePostgresDBName:   c.getEnvByName("MANGROVE_POSTGRES_DB_NAME"),
 		MangroveSalt:             c.getEnvByName("MANGROVE_SALT"),
+		HttpConf: HttpConf{
+			MangroveHost: c.getEnvByName("MANGROVE_HOST"),
+			MangrovePort: c.getEnvByName("MANGROVE_PORT"),
+		},
+		WebauthnConf: WebauthnConf{
+			MangroveWebauthnRPDisplayName: c.getEnvByName("MANGROVE_WEBAUTHN_RPDISPLAY_NAME"),
+			MangroveWebauthnRPID:          c.getEnvByName("MANGROVE_WEBAUTHN_RPID"),
+			MangroveWebauthnRPOrigins:     c.parseEnvListByName("MANGROVE_WEBAUTHN_RP_ORIGINS"),
+		},
 	}
 }
 
@@ -64,4 +89,12 @@ func (c *conf) getEnvByName(envName string) string {
 	}
 	c.logger.Warn().Msgf("Environment variable %s was not set", envName)
 	return ""
+}
+func (c *conf) parseEnvListByName(envName string) []string {
+	envValue, ok := os.LookupEnv(envName)
+	if ok {
+		return strings.Split(envValue, ",")
+	}
+	c.logger.Warn().Msgf("Environment variable %s was not set", envName)
+	return []string{}
 }

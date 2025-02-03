@@ -13,6 +13,7 @@ import (
 	"github.com/asatraitis/mangrove/internal/handler/types"
 	"github.com/asatraitis/mangrove/internal/service/config"
 	"github.com/asatraitis/mangrove/internal/service/webauthn"
+	wa "github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
@@ -42,7 +43,11 @@ func (suite *ClientBllTestSuite) SetupSuite() {
 	logger := zerolog.Nop()
 	vars := configs.NewConf(logger).GetEnvironmentVars()
 	vars.MangroveEnv = "testsalt"
-	wauthn, err := webauthn.NewWebAuthN(logger)
+	wauthn, err := webauthn.NewWebAuthN(&wa.Config{
+		RPDisplayName: "Mangrove",
+		RPID:          "localhost",
+		RPOrigins:     []string{"http://localhost:3030"},
+	}, logger)
 	if err != nil {
 		suite.T().Fatal(err)
 	}

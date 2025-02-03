@@ -3,7 +3,6 @@ package webauthn
 import (
 	"encoding/base64"
 	"errors"
-	"time"
 
 	"github.com/asatraitis/mangrove/internal/dal/models"
 	"github.com/asatraitis/mangrove/internal/dto"
@@ -49,30 +48,10 @@ type webAuthN struct {
 }
 
 // TODO: Need to add cache expiration logic
-// technically, this will only be used for superadmin registration once - not critical to empty cache
-// but likely need to add expiration logic to cache package
-func NewWebAuthN(logger zerolog.Logger) (WebAuthN, error) {
+func NewWebAuthN(conf *webauthn.Config, logger zerolog.Logger) (WebAuthN, error) {
 	logger = logger.With().Str("component", "WebAuthN").Logger()
 
-	// TODO: remove hard coded confing and add env vars; look at more settings
-	waConfig := &webauthn.Config{
-		RPDisplayName: "Mangrove",
-		RPID:          "localhost",
-		RPOrigins:     []string{"http://localhost:3030", "http://localhost:3000"},
-		Timeouts: webauthn.TimeoutsConfig{
-			Login: webauthn.TimeoutConfig{
-				Enforce:    true,             // Require the response from the client comes before the end of the timeout.
-				Timeout:    time.Second * 60, // Standard timeout for login sessions.
-				TimeoutUVD: time.Second * 60, // Timeout for login sessions which have user verification set to discouraged.
-			},
-			Registration: webauthn.TimeoutConfig{
-				Enforce:    true,             // Require the response from the client comes before the end of the timeout.
-				Timeout:    time.Second * 60, // Standard timeout for registration sessions.
-				TimeoutUVD: time.Second * 60, // Timeout for login sessions which have user verification set to discouraged.
-			},
-		},
-	}
-	wa, err := webauthn.New(waConfig)
+	wa, err := webauthn.New(conf)
 	if err != nil {
 		logger.Err(err).Msg("Bad webauthn config")
 		return nil, err

@@ -11,6 +11,7 @@ import (
 	"github.com/asatraitis/mangrove/internal/dal/mocks"
 	"github.com/asatraitis/mangrove/internal/service/config"
 	"github.com/asatraitis/mangrove/internal/service/webauthn"
+	wa "github.com/go-webauthn/webauthn/webauthn"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -43,7 +44,13 @@ func (suite *ConfigBLLTestSuite) SetupSuite() {
 	suite.dal = mocks.NewMockDAL(suite.Ctrl)
 	suite.dal.EXPECT().Config(gomock.Any()).Return(suite.configDal).AnyTimes()
 
-	wauthn, err := webauthn.NewWebAuthN(suite.logger)
+	wauthn, err := webauthn.NewWebAuthN(
+		&wa.Config{
+			RPDisplayName: "Mangrove",
+			RPID:          "localhost",
+			RPOrigins:     []string{"http://localhost:3030", "http://localhost:3000"},
+		},
+		suite.logger)
 	if err != nil {
 		suite.T().Fatal(err)
 	}

@@ -3,6 +3,7 @@ package webauthn
 import (
 	"testing"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
 )
@@ -22,7 +23,11 @@ func (suite *WebAuthNTestSuite) SetupSuite() {
 }
 
 func (suite *WebAuthNTestSuite) TestNewWebAuthN() {
-	wa, err := NewWebAuthN(suite.logger)
+	wa, err := NewWebAuthN(&webauthn.Config{
+		RPDisplayName: "Mangrove",
+		RPID:          "localhost",
+		RPOrigins:     []string{"http://localhost:3030"},
+	}, suite.logger)
 	suite.NoError(err)
 	suite.NotNil(wa)
 }
