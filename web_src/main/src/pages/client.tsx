@@ -1,69 +1,49 @@
-import { getRouteApi, Link } from '@tanstack/react-router'
-import { SlFolderAlt } from "react-icons/sl";
+import { getRouteApi, linkOptions, useNavigate } from '@tanstack/react-router'
+import { Flex, Card, Button } from '@mantine/core';
 
-import { Table, Box, Flex, Text, Card, Button, ThemeIcon } from '@mantine/core';
+import ClientsTable from "../components/ClientsTable/ClientsTable"
+import EmptyState from '../components/shared/EmptyState';
+import ClientsHeader, {ActionType} from '../components/ClientsHeader/ClientsHeader';
 
+const createClientLinkOptions = linkOptions({
+    to: "/clients/create",
+  })
 const clientApi = getRouteApi("/clients")
 export default function Clients() {
+    const navigate = useNavigate()
     const {response: clients, error} = clientApi.useLoaderData()
-
 
     if (error) {
         console.error(error.message)
     }
-    
 
-    // TODO: create EmptyState component?
-    if (clients?.length === 0) {
-        return (
-            <Card radius="md" p='xl' withBorder>
-                <Flex justify="center" direction="column" align="center">
-                    <ThemeIcon variant="transparent" size={100}>
-                        <SlFolderAlt size={80} />
-                    </ThemeIcon>
-                    <Text size="xl">No Clients Created</Text>
-                    <Text>Created clients will appear below.</Text>
-                        <Link to="/clients/create">
-                            <Button mt="md">Create Client</Button>
-                        </Link>
-                </Flex>
-            </Card>
-        )
+    const handleAction = (type: ActionType) => {
+        switch(type) {
+            case "create":
+                navigate(createClientLinkOptions)
+                break
+            default:
+                console.warn("action not defined for ", type)
+            
+        }
     }
 
     return (
-        <Card radius="md" withBorder>
-            <Flex justify="flex-end">
-                <Link to="/clients/create">
-                    <Button mt="md">Create Client</Button>
-                </Link>
-            </Flex>
-            <Box mt="md">
-                <Table withTableBorder highlightOnHover>
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>ID</Table.Th>
-                            <Table.Th>Name</Table.Th>
-                            <Table.Th>Description</Table.Th>
-                            <Table.Th>Redirect URI</Table.Th>
-                            <Table.Th>Status</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                        {
-                            clients?.map(c => (
-                                <Table.Tr key={c.id}>
-                                    <Table.Td><Text truncate="end">{c.id}</Text></Table.Td>
-                                    <Table.Td>{c.name}</Table.Td>
-                                    <Table.Td>{c.description}</Table.Td>
-                                    <Table.Td>{c.redirectURI}</Table.Td>
-                                    <Table.Td>{c.status}</Table.Td>
-                                </Table.Tr>
-                            ))
-                        }
-                    </Table.Tbody>
-                </Table>
-            </Box>
-        </Card>
+            <Card radius="md" p='xl' withBorder>
+                <Flex direction="column">
+                {
+                    clients?.length ? (
+                        <>
+                            <ClientsHeader onAction={handleAction}/>
+                            <ClientsTable data={clients!} />
+                        </>
+                    ) : (
+                        <EmptyState title="No created items yet" description="Created clients will appear below.">
+                                <Button mt="md" onClick={() => {navigate(createClientLinkOptions)}}>Create Client</Button>
+                        </EmptyState>
+                    )
+                }
+                </Flex>
+            </Card>
     )
 }

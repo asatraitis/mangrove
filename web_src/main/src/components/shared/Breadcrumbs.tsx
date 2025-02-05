@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useBreadcrumbs } from "../hooks/useBreadcrumbs";
+import { useBreadcrumbs } from "../../hooks/useBreadcrumbs";
 import { Breadcrumbs as MBreadcrumbs } from "@mantine/core";
 
 export default function Breadcrumbs() {

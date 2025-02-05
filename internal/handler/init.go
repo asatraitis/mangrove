@@ -83,6 +83,8 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 	}
 	res.PublicKey = userRegCreds.Response
 
+	// FIXME: this is useless as it stands. Need to sign an access token + device fingerprint or something else
+	// Currently, it signs a random token that could be reused between sessions
 	hasher := utils.NewStandardCrypto([]byte(ih.vars.MangroveSalt))
 	token, sig, err := hasher.GenerateTokenHMAC()
 	if err != nil {

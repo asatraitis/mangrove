@@ -8,7 +8,7 @@ import { useDisclosure } from "@mantine/hooks";
 
 import { useAuthCtx } from "../contexts/auth/useAuthCtx";
 import classes from "./index.module.css"
-import Breadcrumbs from "../components/Breadcrumbs";
+import Breadcrumbs from "../components/shared/Breadcrumbs";
 
 export default function Index() {
     const {user} = useAuthCtx()
