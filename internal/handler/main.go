@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/dto"
 	"github.com/asatraitis/mangrove/internal/typeconv"
 	"github.com/asatraitis/mangrove/internal/utils"
@@ -151,23 +152,7 @@ func (h *mainHandler) initLogin(w http.ResponseWriter, r *http.Request) {
 	res.PublicKey = creds
 	res.SessionKey = sessionKey
 
-	hasher := utils.NewStandardCrypto([]byte(h.vars.MangroveSalt))
-	token, sig, err := hasher.GenerateTokenHMAC()
-	if err != nil {
-		sendErrResponse[any](w, &dto.ResponseError{
-			Message: "failed to create a signiture",
-			Code:    "ERROR_CODE_TBD",
-		}, http.StatusBadRequest)
-		return
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "csrf_token",
-		Value:    token + "." + sig,
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
-		// Secure: true, // TODO: this needs to be set TRUE for prod
-	})
+	h.setCsrfCookies(w, r, "")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
@@ -216,6 +201,8 @@ func (h *mainHandler) finishLogin(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
+	h.setCsrfCookies(w, r, token.ID.String())
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "auth_token",
@@ -277,4 +264,39 @@ func (h *mainHandler) createClient(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(dto.Response[dto.CreateClientResponse]{Response: res})
+}
+
+// TODO: Consolidate with init handler (dupe)
+func (h *mainHandler) setCsrfCookies(w http.ResponseWriter, r *http.Request, authToken string) {
+	h.logger.Info().Msg("setting CSRF Cookies")
+	if r == nil || w == nil {
+		h.logger.Error().Msg("missing request or response; failed to set csrf cookies")
+		return
+	}
+
+	// validating IP might be harder to use with a proxy - omitting for now
+	// randomUUID + authToken + userAgent + acceptHeader + acceptLanguageHeader
+	csrfToken := uuid.NewString()
+	ip := getReqIP(r)
+	data := csrfToken + authToken + r.UserAgent() + r.Header.Get("Accept") + r.Header.Get("Accept-Language")
+	h.logger.Info().Str("userAgent", r.UserAgent()).Str("RemoteAdds", ip).Msg("data to sign")
+	hasher := utils.NewStandardCrypto([]byte(h.vars.MangroveSalt))
+	signature := hasher.GenerateTokenHMAC(data)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    csrfToken,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+		Secure:   h.vars.MangroveEnv == configs.PROD,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_sig",
+		Value:    signature,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+		Secure:   h.vars.MangroveEnv == configs.PROD,
+		HttpOnly: true,
+	})
 }

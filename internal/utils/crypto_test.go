@@ -59,17 +59,15 @@ func (suite *CryptoTestSuite) TestCrypto() {
 func (suite *CryptoTestSuite) TestHmac() {
 	c := NewCrypto(1, suite.salt, 64*1024, 4, 32)
 
-	token, sig, err := c.GenerateTokenHMAC()
-	suite.NoError(err)
-	suite.NotEmpty(token)
+	sig := c.GenerateTokenHMAC("test")
 	suite.NotEmpty(sig)
 
-	err = c.VerifyToken(token, sig)
+	err := c.VerifyToken("test", sig)
 	suite.NoError(err)
 
 	err = c.VerifyToken("whatever", sig)
 	suite.Error(err)
 
-	err = c.VerifyToken(token, "whatever")
+	err = c.VerifyToken("test", "whatever")
 	suite.Error(err)
 }

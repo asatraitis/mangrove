@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/dto"
 	"github.com/asatraitis/mangrove/internal/utils"
 	"github.com/google/uuid"
@@ -83,25 +84,8 @@ func (ih *initHandler) initRegistration(w http.ResponseWriter, r *http.Request) 
 	}
 	res.PublicKey = userRegCreds.Response
 
-	// FIXME: this is useless as it stands. Need to sign an access token + device fingerprint or something else
-	// Currently, it signs a random token that could be reused between sessions
-	hasher := utils.NewStandardCrypto([]byte(ih.vars.MangroveSalt))
-	token, sig, err := hasher.GenerateTokenHMAC()
-	if err != nil {
-		sendErrResponse[dto.InitRegistrationResponse](w, &dto.ResponseError{
-			Message: "failed to create a signiture",
-			Code:    "ERROR_CODE_TBD",
-		}, http.StatusBadRequest)
-		return
-	}
+	ih.setCsrfCookies(w, r, "")
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "csrf_token",
-		Value:    token + "." + sig,
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
-		// Secure: true, // TODO: this needs to be set TRUE for prod
-	})
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
@@ -172,15 +156,33 @@ func (ih *initHandler) finishRegistration(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 }
 
-// TODO: move it to utils within handler package?
-func sendErrResponse[T any](w http.ResponseWriter, err *dto.ResponseError, status int) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
+// TODO: Consolidate with main handler (dupe)
+func (ih *initHandler) setCsrfCookies(w http.ResponseWriter, r *http.Request, authToken string) {
+	if r == nil || w == nil {
+		return
+	}
 
-	return json.NewEncoder(w).Encode(
-		dto.Response[T]{
-			Response: nil,
-			Error:    err,
-		},
-	)
+	// validating IP might be harder to use with a proxy - omitting for now
+	// randomUUID + authToken + userAgent + acceptHeader + acceptLanguageHeader
+	csrfToken := uuid.NewString()
+	data := csrfToken + authToken + r.UserAgent() + r.Header.Get("Accept") + r.Header.Get("Accept-Language")
+	hasher := utils.NewStandardCrypto([]byte(ih.vars.MangroveSalt))
+	signature := hasher.GenerateTokenHMAC(data)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    csrfToken,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+		Secure:   ih.vars.MangroveEnv == configs.PROD,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_sig",
+		Value:    signature,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+		Secure:   ih.vars.MangroveEnv == configs.PROD,
+		HttpOnly: true,
+	})
 }

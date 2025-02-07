@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"slices"
-	"strings"
 
 	"github.com/asatraitis/mangrove/configs"
 	"github.com/asatraitis/mangrove/internal/bll"
@@ -96,14 +95,7 @@ func (m *middleware) CsrfValidationMiddleware(next HandlerFuncType) HandlerFuncT
 		csrfToken := r.Header.Get("X-CSRF-Token")
 		csrfCookie, err := r.Cookie("csrf_token")
 		if err != nil || csrfToken == "" {
-			sendErrResponse[any](w, &dto.ResponseError{
-				Message: "failed to validate token",
-				Code:    "ERROR_CODE_TBD",
-			}, http.StatusBadRequest)
-			return
-		}
-		csrfParts := strings.Split(csrfCookie.Value, ".")
-		if len(csrfParts) != 2 {
+			m.logger.Err(err).Msg("failed to get csrf_token cookie")
 			sendErrResponse[any](w, &dto.ResponseError{
 				Message: "failed to validate token",
 				Code:    "ERROR_CODE_TBD",
@@ -111,7 +103,24 @@ func (m *middleware) CsrfValidationMiddleware(next HandlerFuncType) HandlerFuncT
 			return
 		}
 
-		if csrfToken != csrfParts[0] {
+		if csrfToken != csrfCookie.Value {
+			m.logger.Err(err).Msg("csrf token did not match cookie")
+			sendErrResponse[any](w, &dto.ResponseError{
+				Message: "failed to validate token",
+				Code:    "ERROR_CODE_TBD",
+			}, http.StatusBadRequest)
+			return
+		}
+
+		authCookie, _ := r.Cookie("auth_token")
+		var authToken string
+		if authCookie != nil {
+			authToken = authCookie.Value
+		}
+
+		csrfSigCookie, err := r.Cookie("csrf_sig")
+		if err != nil {
+			m.logger.Err(err).Msg("failed to get csrf_sig cookie")
 			sendErrResponse[any](w, &dto.ResponseError{
 				Message: "failed to validate token",
 				Code:    "ERROR_CODE_TBD",
@@ -120,8 +129,10 @@ func (m *middleware) CsrfValidationMiddleware(next HandlerFuncType) HandlerFuncT
 		}
 
 		hasher := utils.NewStandardCrypto([]byte(m.vars.MangroveSalt))
-		err = hasher.VerifyToken(csrfToken, csrfParts[1])
+		// csrfToken + authToken + userAgent + acceptHeader + acceptLanguageHeader
+		err = hasher.VerifyToken(csrfToken+authToken+r.UserAgent()+r.Header.Get("Accept")+r.Header.Get("Accept-Language"), csrfSigCookie.Value)
 		if err != nil {
+			m.logger.Err(err).Str("data", csrfToken+authToken+r.UserAgent()+r.Header.Get("Accept")+r.Header.Get("Accept-Language")).Str("sig", csrfSigCookie.Value).Msg("failed to verify csrf")
 			sendErrResponse[any](w, &dto.ResponseError{
 				Message: "failed to validate token",
 				Code:    "ERROR_CODE_TBD",

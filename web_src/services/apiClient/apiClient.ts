@@ -25,9 +25,8 @@ export default class ApiClient implements IApiCLient {
     private apiEndpoint = "/v1"
 
     static async call<T>(url: string, config?: RequestInit): Promise<Response<T>> {
-        const csrfCookie = ApiClient.getCookie("csrf_token")
-        const parts = csrfCookie.split(".")
-        const newConfig = {...config, headers: {...(config?.headers ?? {}), "X-CSRF-Token": parts[0]}}
+        const csrfToken = ApiClient.getCookie("csrf_token")
+        const newConfig = {...config, headers: {...(config?.headers ?? {}), "X-CSRF-Token": csrfToken}}
         try {
             const res = await fetch(url, newConfig)
             const contentType = res.headers.get("content-type")

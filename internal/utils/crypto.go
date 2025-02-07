@@ -18,7 +18,7 @@ type Crypto interface {
 	GenerateBase64String([]byte) string
 	DecodeBase64String(string) ([]byte, error)
 	CompareValueToHash(string, []byte) error
-	GenerateTokenHMAC() (token string, signature string, err error)
+	GenerateTokenHMAC(string) string
 	VerifyToken(token string, signature string) error
 }
 type crypto struct {
@@ -86,16 +86,14 @@ func (c *crypto) CompareValueToHash(value string, hash []byte) error {
 	return nil
 }
 
-func (c *crypto) GenerateTokenHMAC() (token string, signature string, err error) {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return token, signature, err
+func (c *crypto) GenerateTokenHMAC(data string) string {
+	if data == "" {
+		data = uuid.NewString()
 	}
-	token = id.String()
 
-	signature = SignToken(token, c.salt)
+	signature := SignToken(data, c.salt)
 
-	return token, signature, err
+	return signature
 }
 
 func (c *crypto) VerifyToken(token, signature string) error {
