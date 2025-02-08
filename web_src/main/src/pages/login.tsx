@@ -6,8 +6,8 @@ import { useRouter, getRouteApi } from '@tanstack/react-router';
 
 import { startAuth } from '@services/auth/auth';
 
-import { apiClient as api} from '@services/apiClient/apiClient'
-import { useAuthCtx } from '../contexts/auth/useAuthCtx';
+import { useServices } from '../contexts/services';
+import { useAuthCtx } from '../contexts/auth';
 
 const routeApi = getRouteApi('/login')
 
@@ -16,6 +16,7 @@ export default function Login() {
 
     const router = useRouter()
     const {setUser} = useAuthCtx()
+    const services = useServices()
     const [loading, setLoading] = useState(false)
 
     const [username, setUsername] = useState("")
@@ -23,9 +24,13 @@ export default function Login() {
     const handleAuth = async (e: FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        console.log(username)
+
+        if (!services?.api) {
+            console.error("api service missing in services context")
+            return
+        }
         // hit the api and get options to be used with authenticator
-        const {response, error: initLoginErr} = await api.initLogin(username)
+        const {response, error: initLoginErr} = await services.api.initLogin(username)
         if (initLoginErr) {
             // TODO: handle error
             console.error("initLogin API error", initLoginErr)
@@ -43,7 +48,7 @@ export default function Login() {
             console.error("authenticator error", startAuthErr)
             return
         }
-        const {response: finishLoginRes, error: finishLoginErr} = await api.finishLogin({credential, sessionKey: response.sessionKey})
+        const {response: finishLoginRes, error: finishLoginErr} = await services.api.finishLogin({credential, sessionKey: response.sessionKey})
         if (finishLoginErr) {
             // TODO: handle error
             console.error("finishLogin API error", finishLoginErr)

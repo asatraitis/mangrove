@@ -10,7 +10,7 @@ import {
 } from "@dto/types"
 import { RegistrationResponseJSON } from "@simplewebauthn/browser"
 
-interface IApiCLient {
+export interface IApiClient {
     me(): Promise<Response<MeResponse>>
     initRegistration(registrationCode: string): Promise<Response<InitRegistrationResponse>>
     finishRegistration(userId: string, credential: RegistrationResponseJSON): Promise<Response<unknown>>
@@ -20,7 +20,7 @@ interface IApiCLient {
     createClient(client: CreateClientRequest): Promise<Response<CreateClientResponse>>
 }
 
-export default class ApiClient implements IApiCLient {
+export default class ApiClient implements IApiClient {
     private url: string
     private apiEndpoint = "/v1"
 
@@ -80,5 +80,3 @@ export default class ApiClient implements IApiCLient {
         return ApiClient.call<CreateClientResponse>(`${this.url}${this.apiEndpoint}/clients`, {method: "POST", body: JSON.stringify(client)})
     }
 }
-
-export const apiClient: IApiCLient = new ApiClient("")

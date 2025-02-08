@@ -2,11 +2,12 @@ import { TextInput, Textarea, NativeSelect, Container, Flex, Card, Button } from
 import { FormEvent, useState } from 'react';
 import {CreateClientRequest, CLIENT_STATUS_ACTIVE, CLIENT_KEY_ALGO_EDDSA} from "@dto/types"
 import { useRouter } from '@tanstack/react-router';
-import { apiClient as api } from '@websrc/services/apiClient/apiClient';
+import { useServices } from '../contexts/services';
 
 
 export default function CreateClient() {
     const router = useRouter()
+    const services = useServices()
     const [form, setForm] = useState<CreateClientRequest>({
         name: "",
         description: "",
@@ -19,7 +20,11 @@ export default function CreateClient() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
-        const {response, error} = await api.createClient(form)
+        if (!services?.api) {
+            console.error("api service is missing in services context!")
+            return
+        }
+        const {response, error} = await services.api.createClient(form)
         if (error) {
             // TODO: handle error
             console.log(error)

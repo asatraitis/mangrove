@@ -1,5 +1,4 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { apiClient as api } from '@websrc/services/apiClient/apiClient'
 import { Skeleton } from '@mantine/core'
 
 export const Route = createFileRoute('/clients')({
@@ -13,8 +12,8 @@ export const Route = createFileRoute('/clients')({
       })
     }
   },
-  loader: () => {
-    return api.userClients()
+  loader: ({context}) => {
+    return context.api.userClients()
   },
   pendingComponent: Pending,
 })

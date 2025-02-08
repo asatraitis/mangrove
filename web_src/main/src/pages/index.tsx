@@ -6,7 +6,7 @@ import { RiDoorLockLine } from "react-icons/ri";
 import { AppShell, Burger, Flex, Container } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
-import { useAuthCtx } from "../contexts/auth/useAuthCtx";
+import { useAuthCtx } from "../contexts/auth";
 import classes from "./index.module.css"
 import Breadcrumbs from "../components/shared/Breadcrumbs";
 

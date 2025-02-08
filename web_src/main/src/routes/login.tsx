@@ -1,5 +1,4 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { apiClient } from '@services/apiClient/apiClient'
 import { USER_STATUS_ACTIVE, USER_STATUS_INACTIVE, USER_STATUS_PENDING, USER_STATUS_SUSPENDED } from '@dto/types'
 
 type LoginSearch = {
@@ -11,8 +10,8 @@ export const Route = createFileRoute('/login')({
       redirect: (search.redirect as string) || "/"
     }
   },
-  beforeLoad: async ({context: {setUser}, search}) => {
-    const {response, error} = await apiClient.me()
+  beforeLoad: async ({context: {setUser, api}, search}) => {
+    const {response, error} = await api.me()
     if (error) {
       // handle error
       return
@@ -40,7 +39,6 @@ export const Route = createFileRoute('/login')({
       throw redirect({
         to: search.redirect
       })
-      return
     }
   }
 })

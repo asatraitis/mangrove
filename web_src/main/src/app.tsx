@@ -3,7 +3,8 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
-import { useAuthCtx } from './contexts/auth/useAuthCtx'
+import { useAuthCtx } from './contexts/auth'
+import { useServices } from './contexts/services'
 
 
 // Create a new router instance
@@ -18,7 +19,9 @@ declare module '@tanstack/react-router' {
 
 export default function App() {
     const {user, setUser} = useAuthCtx()
+    const services = useServices()
+    
     return (
-      <RouterProvider router={router} context={{user, setUser}} />
+      <RouterProvider router={router} context={{user, setUser, api: services?.api}} />
     )
 }
